@@ -52,6 +52,40 @@
 #include "src/lcd.h"
 
 
+#define EM0 0
+#define EM1 1
+#define EM2 2
+#define EM3 3
+#define LOWEST_ENERGY_MODE EM3
+
+//LETIMER definition
+//Attribute: define is modified from lecture slides
+#define LETIMER_PERIOD_MS   2250
+#define LETIMER_ON_TIME_MS  175
+#if (LOWEST_ENERGY_MODE!=EM3)
+#define LFXO_FREQ           32768
+#define PRESCALER_VALUE     4
+#define ACTUAL_CLK_FREQ     LFXO_FREQ/PRESCALER_VALUE
+#else
+#define ULFRCO_FREQ         1000
+#define PRESCALER_VALUE     1
+#define ACTUAL_CLK_FREQ     ULFRCO_FREQ/PRESCALER_VALUE
+#endif
+#define ACTUAL_COMP0_LOAD   (LETIMER_PERIOD_MS*ACTUAL_CLK_FREQ)/1000
+#define ACTUAL_COMP1_LOAD   (LETIMER_ON_TIME_MS*ACTUAL_CLK_FREQ)/1000
+/*Verification:
+  Max number of 16 bits is 65536
+  32768/4=8192Hz
+  7second*8192 = 57344
+  57344 < 65536
+  It can hold at least 7 seconds
+*/
+
+#define MASK(x)               (1UL<<(x))
+#define IF_COMP0              MASK(0)
+#define IF_COMP1              MASK(1)
+#define IF_UF                 MASK(2)
+
 
 // See: https://docs.silabs.com/gecko-platform/latest/service/power_manager/overview
 #if defined(SL_CATALOG_POWER_MANAGER_PRESENT)
@@ -65,8 +99,11 @@
 //   up the MCU from the call to sl_power_manager_sleep() in the main while (1)
 //   loop.
 // Students: We'll need to modify this for A2 onward.
+#if (LOWEST_ENERGY_MODE==EM0)
 #define APP_IS_OK_TO_SLEEP      (false)
-//#define APP_IS_OK_TO_SLEEP      (true)
+#else
+#define APP_IS_OK_TO_SLEEP      (true)
+#endif
 
 // Return values for app_sleep_on_isr_exit():
 //   SL_POWER_MANAGER_IGNORE; // The module did not trigger an ISR and it doesn't want to contribute to the decision
@@ -90,7 +127,6 @@
 //#define APP_SLEEP_ON_ISR_EXIT   (SL_POWER_MANAGER_WAKEUP)
 
 #endif // defined(SL_CATALOG_POWER_MANAGER_PRESENT)
-
 
 /**************************************************************************//**
  * Application Init.

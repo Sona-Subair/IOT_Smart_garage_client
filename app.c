@@ -37,11 +37,11 @@
 
 
 #include "app.h"
-
+#include "src/timers.h"
 // Include logging for this file
 #define INCLUDE_LOG_DEBUG 1
 #include "src/log.h"
-
+#include "src/oscillators.h"
 
 
 
@@ -85,11 +85,12 @@ SL_WEAK void app_init(void)
   // Don't call any Bluetooth API functions until after the boot event.
 
 
-  // Student Edit: Add a call to gpioInit() here
-  
+  cmu_init();
+  letimer_init();
   gpioInit();
-
-
+#if((LOWEST_ENERGY_MODE==EM1) || (LOWEST_ENERGY_MODE==EM2))
+      sl_power_manager_add_em_requirement(LOWEST_ENERGY_MODE);
+#endif
 }
 
 
