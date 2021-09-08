@@ -7,17 +7,17 @@ See [Mastering Markdown](https://guides.github.com/features/mastering-markdown/)
 
 Energy Mode | Period average current (uA) | Average Current with LED off (uA) | Average Current with LED On (uA)
 ------------| ----------------------------|-----------------------------------|-------------------------
-EM0         |           4940               |          4900                      |         5390
-EM1         |           3460               |           3420                     |         3920
-EM2         |           3460               |           3420                     |         3920
-EM3         |           3460               |           3430                     |         3920
+EM0         |           5040.0               |          4850.0                      |         5340.0
+EM1         |           3450.0               |           3410.0                     |         3900.0
+EM2         |           44.0               |           503.0                     |         4.7
+EM3         |           48.0               |           514.8                     |         9.3
 
 **2. Fill in the below chart based on time measured period and LED on time measurements for EM2 and EM3 modes, replacing each TBD with measured values.  Use the [Selecting Ranges](https://www.silabs.com/documents/public/user-guides/ug343-multinode-energy-profiler.pdf) feature of the profiler to select the appropriate measurement range.  When measuring time, measure from peak current to peak current.  Your LED on time measurement should be accurate to 1ms and your period measurement should be accurate to within 10ms**
 
 Energy Mode | Period (s) | LED On Time (ms) |
 ------------| -----------|-------------------
-EM2         |   TBD      |        TBD
-EM3         |   TBD      |        TBD
+EM2         |   2.25      |        175
+EM3         |   2.24      |        174
 
 
 **3. ScreenShots**  
