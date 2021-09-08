@@ -41,9 +41,10 @@ void cmu_init(){
   CMU_OscillatorEnable(cmuOsc_LFXO,true,true);        //EM0-EM2: 32kHz
   CMU_ClockSelectSet(cmuClock_LFA, cmuSelect_LFXO);   //Route LFACLK to LETIMER0 or LESENSE
 #elif(LOWEST_ENERGY_MODE==EM3)
-  CMU_OscillatorEnable(cmuOsc_LFRCO,true,true);       //EM3: 1kHz
+  CMU_OscillatorEnable(cmuOsc_ULFRCO,true,true);       //EM3: 1kHz
   CMU_ClockSelectSet(cmuClock_LFA, cmuSelect_ULFRCO); //Route LFACLK to LETIMER0 or LESENSE
 #endif
+  CMU_ClockDivSet(cmuClock_LETIMER0,PRESCALER_VALUE); //Pre-scale clock
   CMU_ClockEnable(cmuClock_LETIMER0,true);            //Enable LETIMER0 clock
-  CMU_ClockDivSet(cmuClock_LETIMER0,PRESCALER_VALUE);               //Pre-scale clock by 4
+  uint32_t temp = CMU_ClockFreqGet(cmuClock_LETIMER0);
 }

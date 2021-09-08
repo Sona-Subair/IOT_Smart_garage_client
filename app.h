@@ -58,6 +58,7 @@
 #define EM3 3
 #define LOWEST_ENERGY_MODE EM3
 
+
 //LETIMER definition
 //Attribute: define is modified from lecture slides
 #define LETIMER_PERIOD_MS   2250
