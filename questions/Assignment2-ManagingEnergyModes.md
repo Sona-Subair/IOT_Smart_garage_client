@@ -24,43 +24,43 @@ EM3         |   2.24      |        174
 
 ***EM0***  
 Period average current    
-![em0_avg_current_period][em0_avg_current_period]  
+![em0_avg_current_period](https://github.com/CU-ECEN-5823/ecen5823-assignment2-JiabinLin12/blob/master/img/EM0/Period.png)  
 Average Current with LED ***off***  
-![em0_avg_current_ledoff][em0_avg_current_ledoff]  
+![em0_avg_current_ledoff](https://github.com/CU-ECEN-5823/ecen5823-assignment2-JiabinLin12/blob/master/img/EM0/LEDoff.png)
 Average Current with LED ***on***  
-![em0_avg_current_ledon][em0_avg_current_ledon]  
+![em0_avg_current_ledon](https://github.com/CU-ECEN-5823/ecen5823-assignment2-JiabinLin12/blob/master/img/EM0/LEDon.png) 
 
 ***EM1***  
 Period average current    
-![em1_avg_current_period][em1_avg_current_period]  
+![em1_avg_current_period](https://github.com/CU-ECEN-5823/ecen5823-assignment2-JiabinLin12/blob/master/img/EM1/Period.png)  
 Average Current with LED ***off***  
-![em1_avg_current_ledoff][em1_avg_current_ledoff]  
+![em1_avg_current_ledoff](https://github.com/CU-ECEN-5823/ecen5823-assignment2-JiabinLin12/blob/master/img/EM1/LEDoff.png)  
 Average Current with LED ***on***  
-![em1_avg_current_ledon][em1_avg_current_ledon]  
+![em1_avg_current_ledon](https://github.com/CU-ECEN-5823/ecen5823-assignment2-JiabinLin12/blob/master/img/EM1/LEDon.png)
 
 ***EM2***  
 Period average current  
-![em2_avg_current_period][em2_avg_current_period]  
+![em2_avg_current_period](https://github.com/CU-ECEN-5823/ecen5823-assignment2-JiabinLin12/blob/master/img/EM2/Period.png)  
 Average Current with LED ***off***  
-![em2_avg_current_ledoff][em2_avg_current_ledoff]  
+![em2_avg_current_ledoff](https://github.com/CU-ECEN-5823/ecen5823-assignment2-JiabinLin12/blob/master/img/EM2/LEDoff.png)  
 Average Current with LED ***on***  
-![em2_avg_current_ledon][em2_avg_current_ledon]   
+![em2_avg_current_ledon](https://github.com/CU-ECEN-5823/ecen5823-assignment2-JiabinLin12/blob/master/img/EM2/LEDon.png)
 LED measurement - Period   
-![em2_led_period][em2_led_period]  
+![em2_led_period](https://github.com/CU-ECEN-5823/ecen5823-assignment2-JiabinLin12/blob/master/img/EM2/Period.png)  
 LED measurement - LED on time   
-![em2_led_ledOnTime][em2_led_ledOnTime]  
+![em2_led_ledOnTime](https://github.com/CU-ECEN-5823/ecen5823-assignment2-JiabinLin12/blob/master/img/EM2/LEDon.png)
 
 ***EM3***  
 Period average current    
-![em3_avg_current_period][em3_avg_current_period]  
+![em3_avg_current_period](https://github.com/CU-ECEN-5823/ecen5823-assignment2-JiabinLin12/blob/master/img/EM3/Period.png)  
 Average Current with LED ***off***  
-![em3_avg_current_period][em3_avg_current_ledoff]   
+![em3_avg_current_period](https://github.com/CU-ECEN-5823/ecen5823-assignment2-JiabinLin12/blob/master/img/EM3/LEDoff.png)  
 Average Current with LED ***on***  
-![em3_avg_current_period][em3_avg_current_ledon]   
+![em3_avg_current_period](https://github.com/CU-ECEN-5823/ecen5823-assignment2-JiabinLin12/blob/master/img/EM3/LEDon.png)
 LED measurement - Period   
-![em3_led_period][em3_led_period]  
+![em3_led_period](https://github.com/CU-ECEN-5823/ecen5823-assignment2-JiabinLin12/blob/master/img/EM3/Period.png)  
 LED measurement - LED on time   
-![em3_led_ledOnTime][em3_led_ledOnTime]  
+![em3_led_ledOnTime](https://github.com/CU-ECEN-5823/ecen5823-assignment2-JiabinLin12/blob/master/img/EM3/LEDon.png)
 
 [em0_avg_current_period]: screenshots/em0_avg_current_period.jpg "em0_avg_current_period"
 [em0_avg_current_ledoff]: screenshots/em0_avg_current_ledoff.jpg "em0_avg_current_ledoff"
