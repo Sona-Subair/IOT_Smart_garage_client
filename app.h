@@ -56,24 +56,30 @@
 #define EM1 1
 #define EM2 2
 #define EM3 3
-#define LOWEST_ENERGY_MODE EM3
+#define LOWEST_ENERGY_MODE EM2
 
 
 //LETIMER definition
 //Attribute: define is modified from lecture slides
-#define LETIMER_PERIOD_MS   2250
-#define LETIMER_ON_TIME_MS  175
-#if (LOWEST_ENERGY_MODE!=EM3)
-#define LFXO_FREQ           32768
-#define PRESCALER_VALUE     4
-#define ACTUAL_CLK_FREQ     LFXO_FREQ/PRESCALER_VALUE
+#define SHORT_TIME          1           //Set to 1 if use 2.25s T or 0 to 6.5s T
+#if (SHORT_TIME)
+#define LETIMER_PERIOD_MS   2250        //LETIMER period
+#define LETIMER_ON_TIME_MS  175         //LED on time
 #else
-#define ULFRCO_FREQ         1000
-#define PRESCALER_VALUE     1
-#define ACTUAL_CLK_FREQ     ULFRCO_FREQ/PRESCALER_VALUE
+#define LETIMER_PERIOD_MS   6500        //LETIMER period
+#define LETIMER_ON_TIME_MS  1000        //LED on time
 #endif
-#define ACTUAL_COMP0_LOAD   (LETIMER_PERIOD_MS*ACTUAL_CLK_FREQ)/1000
-#define ACTUAL_COMP1_LOAD   (LETIMER_ON_TIME_MS*ACTUAL_CLK_FREQ)/1000
+#if (LOWEST_ENERGY_MODE!=EM3)           //Parameters in EM0,1,2
+#define LFXO_FREQ           32768       //LFXO frequency
+#define PRESCALER_VALUE     4           //clock divisible value
+#define ACTUAL_CLK_FREQ     LFXO_FREQ/PRESCALER_VALUE     //Frequency after clock division
+#else                                   //Parameters in EM3
+#define ULFRCO_FREQ         1000        //ULFRCO frequency
+#define PRESCALER_VALUE     1           //clock divisible value
+#define ACTUAL_CLK_FREQ     ULFRCO_FREQ/PRESCALER_VALUE   //Frequency after clock division
+#endif
+#define ACTUAL_COMP0_LOAD   (LETIMER_PERIOD_MS*ACTUAL_CLK_FREQ)/1000      //Value to comp0
+#define ACTUAL_COMP1_LOAD   (LETIMER_ON_TIME_MS*ACTUAL_CLK_FREQ)/1000     //Value to comp1
 /*Verification:
   Max number of 16 bits is 65536
   32768/4=8192Hz

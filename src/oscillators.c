@@ -30,7 +30,6 @@
 
 #include "oscillators.h"
 #include "app.h"
-
 /**
  * Set up clock management unit for LE timer
  * @param: void
