@@ -84,7 +84,6 @@ void timerWaitUs(uint32_t us_wait){
 
   uint32_t tik_in = LETIMER_CounterGet(LETIMER0);
   uint32_t tik_req = us_wait/1000;
-
   while(tik_waited <= tik_req)
   {
     cur_tik = LETIMER_CounterGet(LETIMER0);

@@ -31,13 +31,16 @@
 #include "app.h"
 #include "i2c.h"
 
+#define INCLUDE_LOG_DEBUG 1
+#include "src/log.h"
 
+#include "stdio.h"
 /**
  * Define as global variable for A4 used
  * **/
 I2C_TransferReturn_TypeDef status;
 uint8_t cmd_data;
-uint16_t rd_data;
+uint8_t rd_data[2];
 
 /**
  * Initialize I2C using I2CSPM_Init and route to the si7021 sensor
@@ -74,6 +77,7 @@ void si7021_send_temp_cmd(){
   }
   timerWaitUs(11000);                                             //wait >10.8ms because of conversion time
 }
+
 /**
  * read two byte temperature values from si7021
  * **/
@@ -81,14 +85,18 @@ void si7021_read_temp_cmd(){
   I2C_TransferSeq_TypeDef sequence;
   sequence.addr = SI7021_ADDRESS<<1;
   sequence.flags = I2C_FLAG_READ;
-  sequence.buf[0].data = (uint8_t*)&rd_data;
+  sequence.buf[0].data = rd_data;//(uint8_t*)&rd_data;
   sequence.buf[0].len= 2;
 
   status = I2CSPM_Transfer (I2C0, &sequence);                     //I2C start writing
   if (status != i2cTransferDone) {                                //I2C status checking
       LOG_ERROR ("I2C READ FAILED WITH ERR CODE: %d",status);
   }
-  LOG_INFO("Temperature %d", ((175.72*rd_data) / 65536 ) - 46.85);
+  uint32_t temperature_in_c = rd_data[1] | rd_data[0]<<8;
+  temperature_in_c = (uint32_t) ((175.72 * (float)temperature_in_c)/65536.0) - 46.85;
+  //uint16_t temp_code = (rd_data[1] | rd_data[0]<<8;
+  LOG_INFO("Temperature %d\n", (int)temperature_in_c);
+  printf("Temperature %d\n", (int)temperature_in_c);
 }
 
 
