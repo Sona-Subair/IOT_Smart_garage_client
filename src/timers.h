@@ -34,5 +34,5 @@
 
 //Function prototype
 void letimer_init();
-
+void timerWaitUs(uint32_t us_wait);
 #endif /* SRC_TIMERS_H_ */

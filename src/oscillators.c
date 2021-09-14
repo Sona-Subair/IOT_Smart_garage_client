@@ -45,5 +45,4 @@ void cmu_init(){
 #endif
   CMU_ClockDivSet(cmuClock_LETIMER0,PRESCALER_VALUE); //Pre-scale clock
   CMU_ClockEnable(cmuClock_LETIMER0,true);            //Enable LETIMER0 clock
-  uint32_t temp = CMU_ClockFreqGet(cmuClock_LETIMER0);
 }

@@ -50,20 +50,22 @@
 #include "src/ble_device_type.h"
 #include "src/gpio.h"
 #include "src/lcd.h"
-
+#include "src/scheduler.h"
+#include "src/log.h"
+#include "src/timers.h"
 
 #define EM0 0
 #define EM1 1
 #define EM2 2
 #define EM3 3
-#define LOWEST_ENERGY_MODE EM2
+#define LOWEST_ENERGY_MODE EM3
 
 
 //LETIMER definition
 //Attribute: define is modified from lecture slides
 #define SHORT_TIME          1           //Set to 1 if use 2.25s T or 0 to 6.5s T
 #if (SHORT_TIME)
-#define LETIMER_PERIOD_MS   2250        //LETIMER period
+#define LETIMER_PERIOD_MS   3000        //LETIMER period
 #define LETIMER_ON_TIME_MS  175         //LED on time
 #else
 #define LETIMER_PERIOD_MS   6500        //LETIMER period
@@ -92,6 +94,8 @@
 #define IF_COMP0              MASK(0)
 #define IF_COMP1              MASK(1)
 #define IF_UF                 MASK(2)
+
+
 
 
 // See: https://docs.silabs.com/gecko-platform/latest/service/power_manager/overview

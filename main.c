@@ -61,7 +61,6 @@ int main(void)
   // Students: Place all of your 1 time initialization code in this function.
   //           See app.c
   app_init();
-
 #if defined(SL_CATALOG_KERNEL_PRESENT)
 
   // Start the kernel. Task(s) created in app_init() will start running.
@@ -80,7 +79,7 @@ int main(void)
     sl_system_process_action();
 
     // Application process. See app.c
-    //app_process_action();
+    app_process_action();
 
 #if defined(SL_CATALOG_POWER_MANAGER_PRESENT)
     // Let the CPU go to sleep if the system allows it.

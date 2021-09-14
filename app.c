@@ -42,6 +42,8 @@
 #define INCLUDE_LOG_DEBUG 1
 #include "src/log.h"
 #include "src/oscillators.h"
+#include "src/scheduler.h"
+#include "src/i2c.h"
 
 
 
@@ -88,6 +90,9 @@ SL_WEAK void app_init(void)
   cmu_init();
   letimer_init();
   gpioInit();
+  EvtCirQ_init();
+  i2c_init();
+
 #if((LOWEST_ENERGY_MODE==EM1) || (LOWEST_ENERGY_MODE==EM2))
       sl_power_manager_add_em_requirement(LOWEST_ENERGY_MODE);
 #endif
@@ -100,15 +105,15 @@ SL_WEAK void app_init(void)
  * comment out this function. Wait loops are a bad idea in general.
  * We'll discuss how to do this a better way in the next assignment.
  *****************************************************************************/
-static void delayApprox(int delay)
-{
-  volatile int i;
-
-  for (i = 0; i < delay; ) {
-      i=i+1;
-  }
-
-} // delayApprox()
+//static void delayApprox(int delay)
+//{
+//  volatile int i;
+//
+//  for (i = 0; i < delay; ) {
+//      i=i+1;
+//  }
+//
+//} // delayApprox()
 
 
 
@@ -124,15 +129,21 @@ SL_WEAK void app_process_action(void)
   //         We will create/use a scheme that is far more energy efficient in
   //         later assignments.
 
-  delayApprox(3500000);
+  uint32_t evt;
 
-  gpioLed0SetOn();
-  //gpioLed1SetOn();
+  evt = getNextEvent();
 
-  delayApprox(3500000);
+  switch(evt){
+    case read_temp_from_si7021:
+      si7021_enable();            //Enable temperature sensor
+      si7021_send_temp_cmd();     //send command to sensor over I2C
+      si7021_read_temp_cmd();     //read command from sensor over I2C
+      si7021_disable();           //Disable temperature sensor
+      break;
 
-  gpioLed0SetOff();
-  //gpioLed1SetOff();
+    default:
+      break;
+  }
 
 }
 

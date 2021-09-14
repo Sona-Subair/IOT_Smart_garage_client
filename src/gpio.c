@@ -34,7 +34,6 @@ void gpioInit()
 	GPIO_PinModeSet(LED1_port, LED1_pin, gpioModePushPull, false);
 
 
-
 } // gpioInit()
 
 

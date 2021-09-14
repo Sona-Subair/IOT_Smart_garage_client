@@ -1,13 +1,13 @@
 /***********************************************************************
- *@file        irq.c
+ *@file        scheduler.c
  *
  *@version     0.0.1
  *
- *@brief       interrupt function file.
+ *@brief       scheduler header files
  *
  *@author      Jiabin Lin, jili9036@Colorado.edu
  *
- *@date        Sep 3, 2021
+ *@date        Sep 9, 2021
  *
  *@institution University of Colorado Boulder (UCB)
  *
@@ -17,7 +17,7 @@
  *
  *@assignment  ecen5823-assignment2-JiabinLin12
  *
- *@due         Sep 10, 2020
+ *@due         Sep 17, 2020
  *
  *@resources   Utilized Silicon Labs' EMLIB peripheral libraries to
  *             implement functionality.
@@ -26,16 +26,32 @@
  *@copyright   All rights reserved. Distribution allowed only for the
  *             use of assignment grading. Use of code excerpts allowed at the
  *             discretion of author. Contact for permission.  */
-#include "timers.h"
+#ifndef SRC_SCHEDULER_H_
+#define SRC_SCHEDULER_H_
+
 #include "app.h"
-/***
- * Handle LETIMER0 interrupt
- * @param: void
- * */
-void LETIMER0_IRQHandler(void){
-  int letimer_flag = LETIMER_IntGetEnabled(LETIMER0);  //determine source of IRQ
-  LETIMER_IntClear(LETIMER0,letimer_flag);             //clear source of IRQ set
-  if(letimer_flag&IF_UF){
-    schedulerSetEventReadTemp();                       //Set read Si7021 event when UF
-  }
-}
+
+
+#define CIR_QUEUE_SIZE      10
+
+//add events here
+enum {
+  no_event = 0,
+  read_temp_from_si7021 = 1
+};
+
+
+//structure for event circular queue
+typedef struct EventQueue_s{
+  int32_t head;
+  int32_t tail;
+  uint32_t event[CIR_QUEUE_SIZE];
+}EventQueue_t;
+
+//Function prototype
+EventQueue_t *getEvQ();
+void EvtCirQ_init();
+void schedulerSetEventReadTemp();
+uint32_t getNextEvent();
+
+#endif /* SRC_SCHEDULER_H_ */
