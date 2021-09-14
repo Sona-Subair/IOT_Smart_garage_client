@@ -38,9 +38,11 @@
 
 #include "app.h"
 #include "src/timers.h"
+
 // Include logging for this file
 #define INCLUDE_LOG_DEBUG 1
 #include "src/log.h"
+
 #include "src/oscillators.h"
 #include "src/scheduler.h"
 #include "src/i2c.h"
@@ -87,6 +89,10 @@ SL_WEAK void app_init(void)
   // Don't call any Bluetooth API functions until after the boot event.
 
 
+  printf("Hello World\n");
+  LOG_INFO("Hello World");
+
+/*
   cmu_init();
   letimer_init();
   gpioInit();
@@ -96,6 +102,9 @@ SL_WEAK void app_init(void)
 #if((LOWEST_ENERGY_MODE==EM1) || (LOWEST_ENERGY_MODE==EM2))
       sl_power_manager_add_em_requirement(LOWEST_ENERGY_MODE);
 #endif
+
+*/
+
 }
 
 
@@ -129,6 +138,7 @@ SL_WEAK void app_process_action(void)
   //         We will create/use a scheme that is far more energy efficient in
   //         later assignments.
 
+  /*
   uint32_t evt;
 
   evt = getNextEvent();
@@ -144,6 +154,7 @@ SL_WEAK void app_process_action(void)
     default:
       break;
   }
+*/
 
 }
 

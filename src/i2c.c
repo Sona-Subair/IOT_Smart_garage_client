@@ -31,10 +31,13 @@
 #include "app.h"
 #include "i2c.h"
 
+// Include logging for this file
 #define INCLUDE_LOG_DEBUG 1
 #include "src/log.h"
 
 #include "stdio.h"
+
+
 /**
  * Define as global variable for A4 used
  * **/
