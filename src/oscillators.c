@@ -30,6 +30,12 @@
 
 #include "oscillators.h"
 #include "app.h"
+
+// Include logging for this file
+#define INCLUDE_LOG_DEBUG 1
+#include "src/log.h"
+
+
 /**
  * Set up clock management unit for LE timer
  * @param: void

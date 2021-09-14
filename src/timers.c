@@ -33,6 +33,9 @@
 
 #define INCLUDE_LOG_DEBUG 1
 #include "src/log.h"
+
+
+
 /**
  * This function initialize LE-TIMER0
  * @param: void
@@ -44,8 +47,8 @@ void letimer_init(){
   letimer_init_args.comp0Top = true;                      //Reset CNT when underflow
   LETIMER_CompareSet(LETIMER0,0,ACTUAL_COMP0_LOAD);       //Set comparator0 period
   LETIMER_CompareSet(LETIMER0,1,ACTUAL_COMP1_LOAD);       //Set LED on time to 175ms
-  LETIMER_IntClear(LETIMER0,IF_COMP0|IF_COMP1|IF_UF);     //Clear COMP0, COMP1, UF Interrupt
-  LETIMER_IntEnable(LETIMER0,IF_COMP0|IF_COMP1|IF_UF);    //Enable COMP0, COMP1, UF Interrupt
+  LETIMER_IntClear(LETIMER0,IF_COMP0|IF_UF);     //Clear COMP0, COMP1, UF Interrupt
+  LETIMER_IntEnable(LETIMER0,IF_COMP0|IF_UF);    //Enable COMP0, COMP1, UF Interrupt
   NVIC_ClearPendingIRQ(LETIMER0_IRQn);                    //Clear IRQ
   NVIC_EnableIRQ(LETIMER0_IRQn);                          //Enable IRQ
   LETIMER_Init(LETIMER0,&letimer_init_args);
@@ -81,8 +84,8 @@ static inline bool is_rollover(uint32_t cur, uint32_t pre){
 void timerWaitUs(uint32_t us_wait){
   uint32_t pre_tik = LETIMER_PERIOD_MS, cur_tik=0,tik_waited=0;
 
-  if((us_wait < (1*MS_TO_US)) || (us_wait >= LETIMER_PERIOD_MS) ){
-      LOG_ERROR("ULFRCO only has precision of millisecond or Sleep time close to LETIMER period ");
+  if((us_wait < (1*MS_TO_US)) || (us_wait >= LETIMER_PERIOD_MS*MS_TO_US)){
+      LOG_ERROR("ULFRCO only has precision of millisecond or Sleep time close to LETIMER period");
       LOG_INFO("FUNCTION DEFAULT TO 80MS");
       us_wait = SI7021_ENABLE_TIME_US;
   }

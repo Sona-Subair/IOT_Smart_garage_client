@@ -51,7 +51,6 @@
 #include "src/gpio.h"
 #include "src/lcd.h"
 #include "src/scheduler.h"
-#include "src/log.h"
 #include "src/timers.h"
 
 #define EM0 0

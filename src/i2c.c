@@ -31,6 +31,7 @@
 #include "app.h"
 #include "i2c.h"
 
+// Include logging for this file
 #define INCLUDE_LOG_DEBUG 1
 #include "src/log.h"
 
@@ -100,8 +101,7 @@ void si7021_read_temp_cmd(){
   uint32_t temperature_in_c = rd_data[1] | rd_data[0]<<8;
   temperature_in_c = (uint32_t) ((175.72 * (float)temperature_in_c)/65536.0) - 46.85;
 
-  LOG_INFO("Temperature %d\n", (int)temperature_in_c);
-  printf("Temperature %d\n", (int)temperature_in_c);
+  LOG_INFO("Temperature %d C\n", (int)temperature_in_c);
 }
 
 
