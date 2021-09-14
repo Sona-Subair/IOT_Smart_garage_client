@@ -47,8 +47,10 @@
 #define CMD_READ_TEMP       0xE0
 #define ENABLE              1
 #define DISABLE             0
-#define SI7021_PORT gpioPortD
-#define SI7021_PIN  15
+#define SI7021_PORT         gpioPortD
+#define SI7021_PIN          15
+#define SI7021_ENABLE_TIME_US   80000
+#define SI7021_CNVRT_TIME_US    11000
 
 
 //Function prototype

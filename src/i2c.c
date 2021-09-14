@@ -35,6 +35,8 @@
 #include "src/log.h"
 
 #include "stdio.h"
+
+
 /**
  * Define as global variable for A4 used
  * **/
@@ -75,7 +77,7 @@ void si7021_send_temp_cmd(){
   if (status != i2cTransferDone) {                                //I2C status checking
       LOG_ERROR ("I2C WRITE FAILED WITH ERR CODE: %d",status);
   }
-  timerWaitUs(11000);                                             //wait >10.8ms because of conversion time
+  timerWaitUs(SI7021_CNVRT_TIME_US);                              //wait >10.8ms because of conversion time
 }
 
 /**
@@ -85,16 +87,19 @@ void si7021_read_temp_cmd(){
   I2C_TransferSeq_TypeDef sequence;
   sequence.addr = SI7021_ADDRESS<<1;
   sequence.flags = I2C_FLAG_READ;
-  sequence.buf[0].data = rd_data;//(uint8_t*)&rd_data;
+  sequence.buf[0].data = rd_data;
   sequence.buf[0].len= 2;
 
   status = I2CSPM_Transfer (I2C0, &sequence);                     //I2C start writing
   if (status != i2cTransferDone) {                                //I2C status checking
       LOG_ERROR ("I2C READ FAILED WITH ERR CODE: %d",status);
   }
+  //Attribute:
+  //this line of conversion code is taken from sluiter's
+  //in order to suppress unused variable warning
   uint32_t temperature_in_c = rd_data[1] | rd_data[0]<<8;
   temperature_in_c = (uint32_t) ((175.72 * (float)temperature_in_c)/65536.0) - 46.85;
-  //uint16_t temp_code = (rd_data[1] | rd_data[0]<<8;
+
   LOG_INFO("Temperature %d\n", (int)temperature_in_c);
   printf("Temperature %d\n", (int)temperature_in_c);
 }
@@ -106,7 +111,7 @@ void si7021_read_temp_cmd(){
  * */
 void si7021_enable(){
     GPIO_PinModeSet(SI7021_PORT,SI7021_PIN,gpioModePushPull,ENABLE);
-    timerWaitUs(80000);                                             //wait 80ms for si7021 to fully turn on
+    timerWaitUs(SI7021_ENABLE_TIME_US);                           //wait 80ms for si7021 to fully turn on
 }
 /**
  * Disable SENSOR_ENABLE PIN for si7021 in the schematic

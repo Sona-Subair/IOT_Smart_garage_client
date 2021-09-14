@@ -41,6 +41,7 @@
 // Include logging for this file
 #define INCLUDE_LOG_DEBUG 1
 #include "src/log.h"
+
 #include "src/oscillators.h"
 #include "src/scheduler.h"
 #include "src/i2c.h"

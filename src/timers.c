@@ -29,6 +29,10 @@
 
 #include "timers.h"
 #include "app.h"
+#include "i2c.h"
+
+#define INCLUDE_LOG_DEBUG 1
+#include "src/log.h"
 /**
  * This function initialize LE-TIMER0
  * @param: void
@@ -62,28 +66,31 @@ static inline bool is_rollover(uint32_t cur, uint32_t pre){
 /**
  * Wait amount of time based on the user input
  * @param[in]: millisecond to wait
- *             input range [1000, 2800000]
+ *             input range [1000, 3000000]
  *             1000:
  *             we are using ULFRCO(1kHz) in EM3
  *             it is not possible to reach to microsecond level
  *
- *             2800000:
+ *             LETIMER_PERIOD_MS:
  *             Period is 3 second, busying polling more than
- *             2.8 second would be bad for power consumption +
- *             there is no need to polling and wait this long
+ *             3 second would be bad for power consumption +
+ *             polling more than 3 second CPU will spend all
+ *             its time waiting
  *
  * */
 void timerWaitUs(uint32_t us_wait){
-  uint32_t pre_tik = 3000, cur_tik=0,tik_waited=0;
+  uint32_t pre_tik = LETIMER_PERIOD_MS, cur_tik=0,tik_waited=0;
 
-  if(us_wait < 1000 || us_wait > 2800000 ){
+  if((us_wait < (1*MS_TO_US)) || (us_wait >= LETIMER_PERIOD_MS) ){
       LOG_ERROR("ULFRCO only has precision of millisecond or Sleep time close to LETIMER period ");
       LOG_INFO("FUNCTION DEFAULT TO 80MS");
-      us_wait = 80000;
+      us_wait = SI7021_ENABLE_TIME_US;
   }
 
   uint32_t tik_in = LETIMER_CounterGet(LETIMER0);
-  uint32_t tik_req = us_wait/1000;
+  uint32_t t_us = S_TO_US/ACTUAL_CLK_FREQ;
+  uint32_t tik_req = us_wait/t_us;
+
   while(tik_waited <= tik_req)
   {
     cur_tik = LETIMER_CounterGet(LETIMER0);
