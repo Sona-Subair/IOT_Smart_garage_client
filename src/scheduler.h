@@ -37,8 +37,19 @@
 //add events here
 enum {
   no_event = 0,
-  read_temp_from_si7021 = 1
+  letimer_underflow_expired,
+  letimer_comp1_expired,
+  i2c_done
 };
+
+typedef enum uint32_t {
+  STATE_IDLE,
+  STATE_SENSOR_POWER_ON,
+  STATE_I2C_WRITING,
+  STATE_I2C_READING,
+  STATE_SENSOR_CLEAN_UP,
+  MY_STATES_NUM
+}state_t;
 
 
 //structure for event circular queue
@@ -52,6 +63,9 @@ typedef struct EventQueue_s{
 EventQueue_t *getEvQ();
 void EvtCirQ_init();
 void schedulerSetEventReadTemp();
+void schedulerSetEventWaitUs();
+void schedulerSetEventI2Cdone();
+void temp_measure_state_machine(uint32_t evt);
 uint32_t getNextEvent();
 
 #endif /* SRC_SCHEDULER_H_ */

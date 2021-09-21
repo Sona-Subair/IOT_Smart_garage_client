@@ -43,12 +43,11 @@
  */
 void letimer_init(){
   LETIMER_Init_TypeDef letimer_init_args = LETIMER_INIT_DEFAULT;
-  letimer_init_args.topValue = ACTUAL_COMP0_LOAD;         //Set value to 2250ms
+  letimer_init_args.topValue = ACTUAL_COMP0_LOAD;         //Set value to 3000ms
   letimer_init_args.comp0Top = true;                      //Reset CNT when underflow
   LETIMER_CompareSet(LETIMER0,0,ACTUAL_COMP0_LOAD);       //Set comparator0 period
-  LETIMER_CompareSet(LETIMER0,1,ACTUAL_COMP1_LOAD);       //Set LED on time to 175ms
-  LETIMER_IntClear(LETIMER0,IF_COMP0|IF_UF);     //Clear COMP0, COMP1, UF Interrupt
-  LETIMER_IntEnable(LETIMER0,IF_COMP0|IF_UF);    //Enable COMP0, COMP1, UF Interrupt
+  LETIMER_IntClear(LETIMER0,IF_UF);              //Clear COMP0, UF Interrupt
+  LETIMER_IntEnable(LETIMER0,IF_UF);             //Enable COMP0, UF Interrupt
   NVIC_ClearPendingIRQ(LETIMER0_IRQn);                    //Clear IRQ
   NVIC_EnableIRQ(LETIMER0_IRQn);                          //Enable IRQ
   LETIMER_Init(LETIMER0,&letimer_init_args);
@@ -81,7 +80,7 @@ static inline bool is_rollover(uint32_t cur, uint32_t pre){
  *             its time waiting
  *
  * */
-void timerWaitUs(uint32_t us_wait){
+void timerWaitUs_polled(uint32_t us_wait){
   uint32_t pre_tik = LETIMER_PERIOD_MS, cur_tik=0,tik_waited=0;
 
   if((us_wait < (1*MS_TO_US)) || (us_wait >= LETIMER_PERIOD_MS*MS_TO_US)){
@@ -104,5 +103,20 @@ void timerWaitUs(uint32_t us_wait){
     }
     pre_tik = LETIMER_CounterGet(LETIMER0);
   }
+
 }
 
+
+void timerWaitUs_irq(uint32_t us_wait){
+  uint32_t cur_tik = LETIMER_CounterGet(LETIMER0);
+  uint32_t t_us = S_TO_US/ACTUAL_CLK_FREQ;
+  uint32_t tik_req = us_wait/t_us;
+  int32_t final_tik = LETIMER_PERIOD_MS - (cur_tik + tik_req);
+  if(final_tik > 0){
+    LETIMER_CompareSet(LETIMER0,1,final_tik);
+  }else{
+    LETIMER_CompareSet(LETIMER0,1,LETIMER_PERIOD_MS+final_tik);
+  }
+  LETIMER_IntClear(LETIMER0,IF_COMP1);
+  LETIMER_IntEnable(LETIMER0,IF_COMP1);
+}

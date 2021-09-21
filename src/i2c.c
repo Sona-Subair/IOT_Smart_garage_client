@@ -68,17 +68,18 @@ void i2c_init(){
  * **/
 void si7021_send_temp_cmd(){
   I2C_TransferSeq_TypeDef sequence;
+  i2c_init();
   cmd_data = CMD_NO_HOLD_MASTER;
   sequence.addr = SI7021_ADDRESS<<1;
   sequence.flags = I2C_FLAG_WRITE;
   sequence.buf[0].data = &cmd_data;
   sequence.buf[0].len= sizeof(cmd_data);
 
-  status = I2CSPM_Transfer (I2C0, &sequence);                     //I2C start writing
-  if (status != i2cTransferDone) {                                //I2C status checking
-      LOG_ERROR ("I2C WRITE FAILED WITH ERR CODE: %d",status);
+  NVIC_EnableIRQ(I2C0_IRQn);
+  status = I2C_TransferInit(I2C0, &sequence);                     //I2C start writing
+  if (status < 0) {                                               //I2C status checking
+      LOG_ERROR ("I2C WRITE FAILED WITH EERR CODE: %d",status);
   }
-  timerWaitUs(SI7021_CNVRT_TIME_US);                              //wait >10.8ms because of conversion time
 }
 
 /**
@@ -86,24 +87,28 @@ void si7021_send_temp_cmd(){
  * **/
 void si7021_read_temp_cmd(){
   I2C_TransferSeq_TypeDef sequence;
+  i2c_init();
   sequence.addr = SI7021_ADDRESS<<1;
   sequence.flags = I2C_FLAG_READ;
   sequence.buf[0].data = rd_data;
   sequence.buf[0].len= 2;
 
-  status = I2CSPM_Transfer (I2C0, &sequence);                     //I2C start writing
+  NVIC_EnableIRQ(I2C0_IRQn);
+  status = I2C_TransferInit(I2C0, &sequence);                     //I2C start writing
   if (status != i2cTransferDone) {                                //I2C status checking
       LOG_ERROR ("I2C READ FAILED WITH ERR CODE: %d",status);
   }
-  //Attribute:
-  //this line of conversion code is taken from sluiter's
-  //in order to suppress unused variable warning
-  uint32_t temperature_in_c = rd_data[1] | rd_data[0]<<8;
-  temperature_in_c = (uint32_t) ((175.72 * (float)temperature_in_c)/65536.0) - 46.85;
 
-  LOG_INFO("Temperature %d C\n", (int)temperature_in_c);
 }
 
+//Attribute:
+  //this line of conversion code is taken from sluiter's
+  //in order to suppress unused variable warning
+void log_temp(){
+    uint32_t temperature_in_c = rd_data[1] | rd_data[0]<<8;
+    temperature_in_c = (uint32_t) ((175.72 * (float)temperature_in_c)/65536.0) - 46.85;
+    LOG_INFO("Temperature %d C\n", (int)temperature_in_c);
+}
 
 /**
  * Enable SENSOR_ENABLE PIN for si7021 in the schematic
@@ -111,7 +116,6 @@ void si7021_read_temp_cmd(){
  * */
 void si7021_enable(){
     GPIO_PinModeSet(SI7021_PORT,SI7021_PIN,gpioModePushPull,ENABLE);
-    timerWaitUs(SI7021_ENABLE_TIME_US);                           //wait 80ms for si7021 to fully turn on
 }
 /**
  * Disable SENSOR_ENABLE PIN for si7021 in the schematic

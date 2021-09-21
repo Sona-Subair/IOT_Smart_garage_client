@@ -93,7 +93,6 @@ SL_WEAK void app_init(void)
   letimer_init();
   gpioInit();
   EvtCirQ_init();
-  i2c_init();
 
 #if((LOWEST_ENERGY_MODE==EM1) || (LOWEST_ENERGY_MODE==EM2))
       sl_power_manager_add_em_requirement(LOWEST_ENERGY_MODE);
@@ -139,18 +138,7 @@ SL_WEAK void app_process_action(void)
 
   evt = getNextEvent();
 
-  switch(evt){
-    case read_temp_from_si7021:
-      si7021_enable();            //Enable temperature sensor
-      si7021_send_temp_cmd();     //send command to sensor over I2C
-      si7021_read_temp_cmd();     //read command from sensor over I2C
-      si7021_disable();           //Disable temperature sensor
-      break;
-
-    default:
-      break;
-  }
-
+  temp_measure_state_machine(evt);
 
 }
 

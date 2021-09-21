@@ -29,7 +29,7 @@
 
 #include "scheduler.h"
 #include "em_core.h"
-
+#include "i2c.h"
 
 EventQueue_t EvtQ;
 
@@ -104,9 +104,30 @@ static int EvtCirQ_DeQ(){
 void schedulerSetEventReadTemp(){
   CORE_DECLARE_IRQ_STATE;
   CORE_ENTER_CRITICAL();                                            //Enter critical section while processing the queue
-  EvtCirQ_EnQ(read_temp_from_si7021);
+  EvtCirQ_EnQ(letimer_underflow_expired);
   CORE_EXIT_CRITICAL();
 }
+
+/**
+ * set WaitUs event to the queue
+ * */
+void schedulerSetEventWaitUs(){
+  CORE_DECLARE_IRQ_STATE;
+  CORE_ENTER_CRITICAL();                                            //Enter critical section while processing the queue
+  EvtCirQ_EnQ(letimer_comp1_expired);
+  CORE_EXIT_CRITICAL();
+}
+
+/**
+ * set I2C0 event to the queue
+ * */
+void schedulerSetEventI2Cdone(){
+  CORE_DECLARE_IRQ_STATE;
+  CORE_ENTER_CRITICAL();                                            //Enter critical section while processing the queue
+  EvtCirQ_EnQ(i2c_done);
+  CORE_EXIT_CRITICAL();
+}
+
 /**
  * get the next event from the queue
  * */
@@ -117,4 +138,67 @@ uint32_t getNextEvent(){
   theEvent = EvtCirQ_DeQ();
   CORE_EXIT_CRITICAL();
   return theEvent;
+}
+
+void temp_measure_state_machine(uint32_t evt){
+  state_t current_state;
+  static state_t next_state = STATE_IDLE;
+  current_state = next_state;
+
+  switch(current_state){
+
+    case STATE_IDLE:
+      next_state = STATE_IDLE;
+
+      if(evt== letimer_underflow_expired ){
+          si7021_enable();
+          timerWaitUs_irq(SI7021_ENABLE_TIME_US);
+          next_state = STATE_SENSOR_POWER_ON;
+      }
+      break;
+
+    case STATE_SENSOR_POWER_ON:
+      next_state = STATE_SENSOR_POWER_ON;
+
+      if(evt == letimer_comp1_expired){
+          sl_power_manager_add_em_requirement(EM1);
+          si7021_send_temp_cmd();
+          next_state = STATE_I2C_WRITING;
+      }
+      break;
+
+    case STATE_I2C_WRITING:
+      next_state = STATE_I2C_WRITING;
+      if(evt == i2c_done){
+          timerWaitUs_irq(SI7021_ENABLE_TIME_US);
+          sl_power_manager_remove_em_requirement(EM1);
+          next_state = STATE_I2C_READING;
+      }
+      break;
+
+    case STATE_I2C_READING:
+      next_state = STATE_I2C_READING;
+      if(evt == letimer_comp1_expired){
+          sl_power_manager_add_em_requirement(EM1);
+          si7021_read_temp_cmd();
+          next_state = STATE_SENSOR_CLEAN_UP;
+      }
+      break;
+
+    case STATE_SENSOR_CLEAN_UP:
+      next_state = STATE_SENSOR_CLEAN_UP;
+      if(evt == i2c_done){
+          sl_power_manager_remove_em_requirement(EM1);
+          si7021_disable();
+          log_temp();
+          NVIC_DisableIRQ(I2C0_IRQn);
+          next_state = STATE_IDLE;
+      }
+      break;
+
+
+
+    default:
+      break;
+   }
 }

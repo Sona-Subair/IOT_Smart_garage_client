@@ -33,9 +33,12 @@
 #include "em_letimer.h"
 
 #define MS_TO_US      1000
+#define US_TO_MS      1000
 #define S_TO_US       1000000
+#define S_TO_MS       1000
 
 //Function prototype
 void letimer_init();
-void timerWaitUs(uint32_t us_wait);
+void timerWaitUs_polled(uint32_t us_wait);
+void timerWaitUs_irq(uint32_t us_wait);
 #endif /* SRC_TIMERS_H_ */

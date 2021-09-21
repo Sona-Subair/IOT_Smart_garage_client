@@ -55,6 +55,7 @@
 
 //Function prototype
 void i2c_init();
+void log_temp();
 void si7021_enable();
 void si7021_disable();
 void si7021_send_temp_cmd();
