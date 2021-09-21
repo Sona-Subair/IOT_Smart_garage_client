@@ -49,17 +49,21 @@ static void ts_increment(){
  * @param: void
  * */
 void LETIMER0_IRQHandler(void){
+
   int letimer_flag = LETIMER_IntGetEnabled(LETIMER0);  //determine source of IRQ
+
+  LETIMER_IntClear(LETIMER0,letimer_flag);
+
   if(letimer_flag&IF_UF){
-    LETIMER_IntClear(LETIMER0,IF_UF);                  //clear source of IRQ set
     ts_increment();
     schedulerSetEventReadTemp();                       //Set read Si7021 event when UF
   }
+
   if(letimer_flag&IF_COMP1){
     schedulerSetEventWaitUs();
-    LETIMER_IntClear(LETIMER0,IF_COMP1);               //clear source of IRQ set
     LETIMER_IntDisable(LETIMER0,IF_COMP1);
   }
+
 }
 
 

@@ -42,8 +42,9 @@
  * Define as global variable for A4 used
  * **/
 I2C_TransferReturn_TypeDef status;
-uint8_t cmd_data;
-uint8_t rd_data[2];
+I2C_TransferSeq_TypeDef    sequence;
+uint8_t                    cmd_data;
+uint8_t                    rd_data[2];
 
 /**
  * Initialize I2C using I2CSPM_Init and route to the si7021 sensor
@@ -67,7 +68,7 @@ void i2c_init(){
  * send no host master command to si7021
  * **/
 void si7021_send_temp_cmd(){
-  I2C_TransferSeq_TypeDef sequence;
+
   i2c_init();
   cmd_data = CMD_NO_HOLD_MASTER;
   sequence.addr = SI7021_ADDRESS<<1;
@@ -77,8 +78,8 @@ void si7021_send_temp_cmd(){
 
   NVIC_EnableIRQ(I2C0_IRQn);
   status = I2C_TransferInit(I2C0, &sequence);                     //I2C start writing
-  if (status < 0) {                                               //I2C status checking
-      LOG_ERROR ("I2C WRITE FAILED WITH EERR CODE: %d",status);
+  if (status < i2cTransferDone) {                                               //I2C status checking
+      LOG_ERROR ("I2C WRITE FAILED WITH EERR CODE: %d", (int)status);
   }
 }
 
@@ -86,17 +87,17 @@ void si7021_send_temp_cmd(){
  * read two byte temperature values from si7021
  * **/
 void si7021_read_temp_cmd(){
-  I2C_TransferSeq_TypeDef sequence;
+
   i2c_init();
   sequence.addr = SI7021_ADDRESS<<1;
   sequence.flags = I2C_FLAG_READ;
-  sequence.buf[0].data = rd_data;
+  sequence.buf[0].data = &rd_data[0];
   sequence.buf[0].len= 2;
 
   NVIC_EnableIRQ(I2C0_IRQn);
   status = I2C_TransferInit(I2C0, &sequence);                     //I2C start writing
-  if (status != i2cTransferDone) {                                //I2C status checking
-      LOG_ERROR ("I2C READ FAILED WITH ERR CODE: %d",status);
+  if (status < i2cTransferDone) {                                //I2C status checking
+      LOG_ERROR ("I2C READ FAILED WITH ERR CODE: %d", (int)status);
   }
 
 }
