@@ -156,10 +156,10 @@ void temp_measure_state_machine(uint32_t evt){
       next_state = STATE_IDLE;
 
       if(evt== letimer_underflow_expired ){
-          si7021_enable();
+          //si7021_enable();
           timerWaitUs_irq(SI7021_ENABLE_TIME_US);
           next_state = STATE_SENSOR_POWER_ON;
-          LOG_INFO("To 1");
+          LOG_INFO("To 1");                   //3000
       }
       break;
 
@@ -167,44 +167,45 @@ void temp_measure_state_machine(uint32_t evt){
       next_state = STATE_SENSOR_POWER_ON;
 
       if(evt == letimer_comp1_expired){
-          sl_power_manager_add_em_requirement(EM1);
-          si7021_send_temp_cmd();
-          next_state = STATE_I2C_WRITING;
-          LOG_INFO("To 2");
-      }
-      break;
-
-    case STATE_I2C_WRITING:
-      next_state = STATE_I2C_WRITING;
-      if(evt == i2c_done){
-          timerWaitUs_irq(10800); // FIXME
-          sl_power_manager_remove_em_requirement(EM1);
-          next_state = STATE_I2C_READING;
-          LOG_INFO("To 3");
-      }
-      break;
-
-    case STATE_I2C_READING:
-      next_state = STATE_I2C_READING;
-      if(evt == letimer_comp1_expired){
-          sl_power_manager_add_em_requirement(EM1);
-          si7021_read_temp_cmd();
-          next_state = STATE_SENSOR_CLEAN_UP;
-          LOG_INFO("To 4");
-      }
-      break;
-
-    case STATE_SENSOR_CLEAN_UP:
-      next_state = STATE_SENSOR_CLEAN_UP;
-      if(evt == i2c_done){
-          sl_power_manager_remove_em_requirement(EM1);
-          si7021_disable();
-          log_temp();
-          NVIC_DisableIRQ(I2C0_IRQn);
+          //sl_power_manager_add_em_requirement(EM1);
+          //si7021_send_temp_cmd();
+          //next_state = STATE_I2C_WRITING;
           next_state = STATE_IDLE;
-          LOG_INFO("To 0");
+          LOG_INFO("To 2");                  //3080+
       }
       break;
+//
+//    case STATE_I2C_WRITING:
+//      next_state = STATE_I2C_WRITING;
+//      if(evt == i2c_done){
+//          timerWaitUs_irq(SI7021_CNVRT_TIME_US);
+//          sl_power_manager_remove_em_requirement(EM1);
+//          next_state = STATE_I2C_READING;
+//          LOG_INFO("To 3");
+//      }
+//      break;
+//
+//    case STATE_I2C_READING:
+//      next_state = STATE_I2C_READING;
+//      if(evt == letimer_comp1_expired){
+//          sl_power_manager_add_em_requirement(EM1);
+//          si7021_read_temp_cmd();
+//          next_state = STATE_SENSOR_CLEAN_UP;
+//          LOG_INFO("To 4");
+//      }
+//      break;
+//
+//    case STATE_SENSOR_CLEAN_UP:
+//      next_state = STATE_SENSOR_CLEAN_UP;
+//      if(evt == i2c_done){
+//          si7021_disable();
+//          log_temp();
+//          NVIC_DisableIRQ(I2C0_IRQn);
+//          sl_power_manager_remove_em_requirement(EM1);
+//          next_state = STATE_IDLE;
+//          LOG_INFO("To 0");
+//      }
+//      break;
 
 
 

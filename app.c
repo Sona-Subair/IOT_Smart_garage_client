@@ -99,7 +99,6 @@ SL_WEAK void app_init(void)
 #endif
 
 
-
 }
 
 

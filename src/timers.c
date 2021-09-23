@@ -46,8 +46,8 @@ void letimer_init(){
   letimer_init_args.topValue = ACTUAL_COMP0_LOAD;         //Set value to 3000ms
   letimer_init_args.comp0Top = true;                      //Reset CNT when underflow
   LETIMER_CompareSet(LETIMER0,0,ACTUAL_COMP0_LOAD);       //Set comparator0 period
-  LETIMER_IntClear(LETIMER0,IF_UF);              //Clear COMP0, UF Interrupt
-  LETIMER_IntEnable(LETIMER0,IF_UF);             //Enable COMP0, UF Interrupt
+  LETIMER_IntClear(LETIMER0,IF_UF);                       //Clear UF Interrupt
+  LETIMER_IntEnable(LETIMER0,IF_UF);                      //Enable UF Interrupt
   NVIC_ClearPendingIRQ(LETIMER0_IRQn);                    //Clear IRQ
   NVIC_EnableIRQ(LETIMER0_IRQn);                          //Enable IRQ
   LETIMER_Init(LETIMER0,&letimer_init_args);
@@ -108,15 +108,19 @@ void timerWaitUs_polled(uint32_t us_wait){
 
 
 void timerWaitUs_irq(uint32_t us_wait){
-  uint32_t cur_tik = LETIMER_CounterGet(LETIMER0);
-  uint32_t t_us = S_TO_US/ACTUAL_CLK_FREQ;
-  uint32_t tik_req = us_wait/t_us;
-  int32_t final_tik = LETIMER_PERIOD_MS - (cur_tik + tik_req);
-  if(final_tik > 0){
-    LETIMER_CompareSet(LETIMER0,1,final_tik);
-  }else{
-    LETIMER_CompareSet(LETIMER0,1,LETIMER_PERIOD_MS+final_tik);
+  uint16_t cur_tik = LETIMER_CounterGet(LETIMER0);
+  uint16_t t_us = S_TO_US/ACTUAL_CLK_FREQ;
+  uint16_t tik_req = us_wait/t_us;
+
+  //int16_t final_tik = LETIMER_PERIOD_MS - (cur_tik + tik_req);
+  uint16_t final_tik = LETIMER_PERIOD_MS - (cur_tik + tik_req);
+
+  if(final_tik > LETIMER_PERIOD_MS){
+    //final_tik = LETIMER_PERIOD_MS+final_tik;
+      final_tik = LETIMER_PERIOD_MS - (0xFFFF-final_tik);
   }
-  LETIMER_IntClear(LETIMER0,IF_COMP1);
+
+  LETIMER_CompareSet(LETIMER0,1,final_tik);
+  LOG_INFO("%d",final_tik);
   LETIMER_IntEnable(LETIMER0,IF_COMP1);
 }

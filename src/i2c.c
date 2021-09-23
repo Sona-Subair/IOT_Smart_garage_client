@@ -68,7 +68,6 @@ void i2c_init(){
  * send no host master command to si7021
  * **/
 void si7021_send_temp_cmd(){
-
   i2c_init();
   cmd_data = CMD_NO_HOLD_MASTER;
   sequence.addr = SI7021_ADDRESS<<1;
@@ -87,7 +86,6 @@ void si7021_send_temp_cmd(){
  * read two byte temperature values from si7021
  * **/
 void si7021_read_temp_cmd(){
-
   i2c_init();
   sequence.addr = SI7021_ADDRESS<<1;
   sequence.flags = I2C_FLAG_READ;

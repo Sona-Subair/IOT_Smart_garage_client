@@ -51,17 +51,18 @@ static void ts_increment(){
 void LETIMER0_IRQHandler(void){
 
   int letimer_flag = LETIMER_IntGetEnabled(LETIMER0);  //determine source of IRQ
-
   LETIMER_IntClear(LETIMER0,letimer_flag);
 
   if(letimer_flag&IF_UF){
+    gpioLed1SetOn();
     ts_increment();
     schedulerSetEventReadTemp();                       //Set read Si7021 event when UF
   }
 
   if(letimer_flag&IF_COMP1){
-    schedulerSetEventWaitUs();
+    gpioLed1SetOff();
     LETIMER_IntDisable(LETIMER0,IF_COMP1);
+    schedulerSetEventWaitUs();
   }
 
 }
