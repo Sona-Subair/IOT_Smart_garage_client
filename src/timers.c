@@ -45,12 +45,15 @@ void letimer_init(){
   LETIMER_Init_TypeDef letimer_init_args = LETIMER_INIT_DEFAULT;
   letimer_init_args.topValue = ACTUAL_COMP0_LOAD;         //Set value to 3000ms
   letimer_init_args.comp0Top = true;                      //Reset CNT when underflow
+  LETIMER_Init(LETIMER0,&letimer_init_args); // DOS moved this up to here
+
   LETIMER_CompareSet(LETIMER0,0,ACTUAL_COMP0_LOAD);       //Set comparator0 period
   LETIMER_IntClear(LETIMER0,IF_UF);                       //Clear UF Interrupt
   LETIMER_IntEnable(LETIMER0,IF_UF);                      //Enable UF Interrupt
+
   NVIC_ClearPendingIRQ(LETIMER0_IRQn);                    //Clear IRQ
   NVIC_EnableIRQ(LETIMER0_IRQn);                          //Enable IRQ
-  LETIMER_Init(LETIMER0,&letimer_init_args);
+
   LETIMER_Enable(LETIMER0,true);                          //Enable LETIMER
 }
 
@@ -107,20 +110,35 @@ void timerWaitUs_polled(uint32_t us_wait){
 }
 
 
+// There is an issue here I have not been able to identify, yet.
 void timerWaitUs_irq(uint32_t us_wait){
   uint16_t cur_tik = LETIMER_CounterGet(LETIMER0);
-  uint16_t t_us = S_TO_US/ACTUAL_CLK_FREQ;
+  uint16_t t_us    = S_TO_US/ACTUAL_CLK_FREQ;
   uint16_t tik_req = us_wait/t_us;
 
   //int16_t final_tik = LETIMER_PERIOD_MS - (cur_tik + tik_req);
-  uint16_t final_tik = LETIMER_PERIOD_MS - (cur_tik + tik_req);
+//  uint16_t final_tik = LETIMER_PERIOD_MS - (cur_tik + tik_req); // target COMP1 value
+//                                                                // if we wrap around final_tik will be some large number
 
-  if(final_tik > LETIMER_PERIOD_MS){
+  uint16_t final_tik = (cur_tik - tik_req); // target COMP1 value
+                                            // if we wrap around final_tik will be some large number
+
+  if(final_tik > LETIMER_PERIOD_MS) {
     //final_tik = LETIMER_PERIOD_MS+final_tik;
+      LOG_INFO("W %d", final_tik); // we wrapped
       final_tik = LETIMER_PERIOD_MS - (0xFFFF-final_tik);
   }
 
+  LOG_INFO("ct=%d, tu=%d, tr=%d, ft=%d", cur_tik, t_us, tik_req, final_tik);
+
   LETIMER_CompareSet(LETIMER0,1,final_tik);
-  LOG_INFO("%d",final_tik);
+  //LOG_INFO("%d",final_tik);
   LETIMER_IntEnable(LETIMER0,IF_COMP1);
-}
+} // timerWaitUs_irq()
+
+
+
+
+
+
+

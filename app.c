@@ -92,7 +92,7 @@ SL_WEAK void app_init(void)
   cmu_init();
   letimer_init();
   gpioInit();
-  EvtCirQ_init();
+//DOS  EvtCirQ_init();
 
 #if((LOWEST_ENERGY_MODE==EM1) || (LOWEST_ENERGY_MODE==EM2))
       sl_power_manager_add_em_requirement(LOWEST_ENERGY_MODE);

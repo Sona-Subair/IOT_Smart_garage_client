@@ -36,6 +36,9 @@
 #include "src/log.h"
 
 
+uint32_t     events = 0; // DOS, private event data structure
+
+
 EventQueue_t EvtQ;
 
 EventQueue_t *getEvQ(){
@@ -47,6 +50,7 @@ EventQueue_t *getEvQ(){
  * @param: void
  * return void
  */
+/*
 void EvtCirQ_init(){
   CORE_DECLARE_IRQ_STATE;
   CORE_ENTER_CRITICAL();
@@ -54,6 +58,8 @@ void EvtCirQ_init(){
   EvtQ.tail = -1;
   CORE_EXIT_CRITICAL();
 }
+*/
+
 //Attribute:
 //CirQ idea: https://www.geeksforgeeks.org/circular-queue-set-1-introduction-array-implementation/
 /**
@@ -63,6 +69,7 @@ void EvtCirQ_init(){
  *          false if the queue is full and cant
  *          be enqueued
  * */
+/*
 static bool EvtCirQ_EnQ(uint32_t event){
   //Case 1: FIFO is full
   if(((EvtQ.head==0) &&( EvtQ.tail==CIR_QUEUE_SIZE-1)) ||
@@ -82,10 +89,13 @@ static bool EvtCirQ_EnQ(uint32_t event){
   }
   return true;
 }
+*/
+
 /**
  * dequeue the event
  * @return: return the head of the event in the queue
  * */
+/*
 static int EvtCirQ_DeQ(){
   //Empty Queue
   if((EvtQ.head==-1) && (EvtQ.tail==-1)){
@@ -103,13 +113,16 @@ static int EvtCirQ_DeQ(){
   }
   return event;
 }
+*/
+
 /**
  * set read temperature event to the queue
  * */
 void schedulerSetEventReadTemp(){
   CORE_DECLARE_IRQ_STATE;
   CORE_ENTER_CRITICAL();                                            //Enter critical section while processing the queue
-  EvtCirQ_EnQ(letimer_underflow_expired);
+  //EvtCirQ_EnQ(letimer_underflow_expired);
+  events |= letimer_underflow_expired;
   CORE_EXIT_CRITICAL();
 }
 
@@ -119,7 +132,8 @@ void schedulerSetEventReadTemp(){
 void schedulerSetEventWaitUs(){
   CORE_DECLARE_IRQ_STATE;
   CORE_ENTER_CRITICAL();                                            //Enter critical section while processing the queue
-  EvtCirQ_EnQ(letimer_comp1_expired);
+  //EvtCirQ_EnQ(letimer_comp1_expired);
+  events |= letimer_comp1_expired;
   CORE_EXIT_CRITICAL();
 }
 
@@ -129,7 +143,8 @@ void schedulerSetEventWaitUs(){
 void schedulerSetEventI2Cdone(){
   CORE_DECLARE_IRQ_STATE;
   CORE_ENTER_CRITICAL();                                            //Enter critical section while processing the queue
-  EvtCirQ_EnQ(i2c_done);
+  //EvtCirQ_EnQ(i2c_done);
+  events |= i2c_done;
   CORE_EXIT_CRITICAL();
 }
 
@@ -140,7 +155,20 @@ uint32_t getNextEvent(){
   uint32_t theEvent;
   CORE_DECLARE_IRQ_STATE;
   CORE_ENTER_CRITICAL();                                             //Enter critical section while processing the queue
-  theEvent = EvtCirQ_DeQ();
+
+  //theEvent = EvtCirQ_DeQ();
+  if (events & letimer_underflow_expired) {
+      theEvent = letimer_underflow_expired;  // return
+      events   ^= letimer_underflow_expired; // clear
+  }
+  if (events & letimer_comp1_expired) {
+      theEvent = letimer_comp1_expired;  // return
+      events   ^= letimer_comp1_expired; // clear
+  }
+  if (events & i2c_done) {
+      theEvent = i2c_done;  // return
+      events   ^= i2c_done; // clear
+  }
   CORE_EXIT_CRITICAL();
   return theEvent;
 }
@@ -157,9 +185,11 @@ void temp_measure_state_machine(uint32_t evt){
 
       if(evt== letimer_underflow_expired ){
           //si7021_enable();
-          timerWaitUs_irq(SI7021_ENABLE_TIME_US);
+          //DOS timerWaitUs_irq(SI7021_ENABLE_TIME_US);
+          timerWaitUs_irq(500000);
           next_state = STATE_SENSOR_POWER_ON;
           LOG_INFO("To 1");                   //3000
+          gpioLed0SetOn();
       }
       break;
 
@@ -171,7 +201,8 @@ void temp_measure_state_machine(uint32_t evt){
           //si7021_send_temp_cmd();
           //next_state = STATE_I2C_WRITING;
           next_state = STATE_IDLE;
-          LOG_INFO("To 2");                  //3080+
+          LOG_INFO("To 0");                  //3080+
+          gpioLed0SetOff();
       }
       break;
 //

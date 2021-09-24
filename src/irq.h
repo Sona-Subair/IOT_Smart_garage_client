@@ -31,6 +31,8 @@
 
 #include <stdint.h>
 
+#include "src/timers.h"
+
 uint32_t letimerMilliseconds();
 
 

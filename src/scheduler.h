@@ -30,16 +30,26 @@
 #define SRC_SCHEDULER_H_
 
 #include "app.h"
+#include "src/gpio.h"
 
 
 #define CIR_QUEUE_SIZE      10
 
 //add events here
+/* DOS temp, not using circular queue, some kind of timing/space bug there
 enum {
   no_event = 0,
   letimer_underflow_expired,
   letimer_comp1_expired,
   i2c_done
+};
+*/
+
+enum {
+  no_event                  = 0,
+  letimer_underflow_expired = 1,
+  letimer_comp1_expired     = 2,
+  i2c_done                  = 4
 };
 
 typedef enum uint32_t {
