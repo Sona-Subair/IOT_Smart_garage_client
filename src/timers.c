@@ -45,7 +45,7 @@ void letimer_init(){
   LETIMER_Init_TypeDef letimer_init_args = LETIMER_INIT_DEFAULT;
   letimer_init_args.topValue = ACTUAL_COMP0_LOAD;         //Set value to 3000ms
   letimer_init_args.comp0Top = true;                      //Reset CNT when underflow
-  LETIMER_Init(LETIMER0,&letimer_init_args); // DOS moved this up to here
+  LETIMER_Init(LETIMER0,&letimer_init_args);              // DOS moved this up to here
 
   LETIMER_CompareSet(LETIMER0,0,ACTUAL_COMP0_LOAD);       //Set comparator0 period
   LETIMER_IntClear(LETIMER0,IF_UF);                       //Clear UF Interrupt
@@ -69,7 +69,7 @@ static inline bool is_rollover(uint32_t cur, uint32_t pre){
 }
 
 /**
- * Wait amount of time based on the user input
+ * delay amount of time based on the user input
  * @param[in]: millisecond to wait
  *             input range [1000, 3000000]
  *             1000:
@@ -109,32 +109,46 @@ void timerWaitUs_polled(uint32_t us_wait){
 
 }
 
-
-// There is an issue here I have not been able to identify, yet.
+/**
+ * sleep amount of time based on the user input. Noticed in timerWaitUs_irq
+ * CPU is not polling, it only wakes up when the comparator 1 values matches
+ * the value we set to.
+ * @param[in]: millisecond to wait
+ *             input range [1000, 3000000]
+ *             1000:
+ *             we are using ULFRCO(1kHz) in EM3
+ *             it is not possible to reach to microsecond level
+ *
+ *             LETIMER_PERIOD_MS:
+ *             Period is 3 second, busying polling more than
+ *             3 second would be bad for power consumption +
+ *             polling more than 3 second CPU will spend all
+ *             its time waiting
+ * */
 void timerWaitUs_irq(uint32_t us_wait){
-  uint16_t cur_tik = LETIMER_CounterGet(LETIMER0);
+
+  if((us_wait < (1*MS_TO_US)) || (us_wait >= LETIMER_PERIOD_MS*MS_TO_US)){
+       LOG_ERROR("ULFRCO only has precision of millisecond or Sleep time close to LETIMER period");
+       LOG_INFO("FUNCTION DEFAULT TO 80MS");
+       us_wait = SI7021_ENABLE_TIME_US;
+   }
+  //Convert from us time request to the number of ticks required
   uint16_t t_us    = S_TO_US/ACTUAL_CLK_FREQ;
   uint16_t tik_req = us_wait/t_us;
 
-  //int16_t final_tik = LETIMER_PERIOD_MS - (cur_tik + tik_req);
-//  uint16_t final_tik = LETIMER_PERIOD_MS - (cur_tik + tik_req); // target COMP1 value
-//                                                                // if we wrap around final_tik will be some large number
+  //Calculate the final tik needed
+  uint16_t cur_tik = LETIMER_CounterGet(LETIMER0);
+  uint16_t final_tik = (cur_tik - tik_req);         // target COMP1 value
 
-  uint16_t final_tik = (cur_tik - tik_req); // target COMP1 value
-                                            // if we wrap around final_tik will be some large number
-
+  //Rollover case
   if(final_tik > LETIMER_PERIOD_MS) {
-    //final_tik = LETIMER_PERIOD_MS+final_tik;
-      LOG_INFO("W %d", final_tik); // we wrapped
       final_tik = LETIMER_PERIOD_MS - (0xFFFF-final_tik);
   }
-
-  LOG_INFO("ct=%d, tu=%d, tr=%d, ft=%d", cur_tik, t_us, tik_req, final_tik);
-
+  //Enable Comparator 1 interrupts
   LETIMER_CompareSet(LETIMER0,1,final_tik);
-  //LOG_INFO("%d",final_tik);
-  LETIMER_IntEnable(LETIMER0,IF_COMP1);
-} // timerWaitUs_irq()
+  LETIMER_IntClear(LETIMER0,IF_COMP1);
+  LETIMER0->IEN |= IF_COMP1;
+}
 
 
 

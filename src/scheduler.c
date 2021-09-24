@@ -36,7 +36,6 @@
 #include "src/log.h"
 
 
-uint32_t     events = 0; // DOS, private event data structure
 
 
 EventQueue_t EvtQ;
@@ -50,7 +49,7 @@ EventQueue_t *getEvQ(){
  * @param: void
  * return void
  */
-/*
+
 void EvtCirQ_init(){
   CORE_DECLARE_IRQ_STATE;
   CORE_ENTER_CRITICAL();
@@ -58,7 +57,7 @@ void EvtCirQ_init(){
   EvtQ.tail = -1;
   CORE_EXIT_CRITICAL();
 }
-*/
+
 
 //Attribute:
 //CirQ idea: https://www.geeksforgeeks.org/circular-queue-set-1-introduction-array-implementation/
@@ -69,7 +68,7 @@ void EvtCirQ_init(){
  *          false if the queue is full and cant
  *          be enqueued
  * */
-/*
+
 static bool EvtCirQ_EnQ(uint32_t event){
   //Case 1: FIFO is full
   if(((EvtQ.head==0) &&( EvtQ.tail==CIR_QUEUE_SIZE-1)) ||
@@ -89,13 +88,13 @@ static bool EvtCirQ_EnQ(uint32_t event){
   }
   return true;
 }
-*/
+
 
 /**
  * dequeue the event
  * @return: return the head of the event in the queue
  * */
-/*
+
 static int EvtCirQ_DeQ(){
   //Empty Queue
   if((EvtQ.head==-1) && (EvtQ.tail==-1)){
@@ -113,7 +112,7 @@ static int EvtCirQ_DeQ(){
   }
   return event;
 }
-*/
+
 
 /**
  * set read temperature event to the queue
@@ -121,8 +120,7 @@ static int EvtCirQ_DeQ(){
 void schedulerSetEventReadTemp(){
   CORE_DECLARE_IRQ_STATE;
   CORE_ENTER_CRITICAL();                                            //Enter critical section while processing the queue
-  //EvtCirQ_EnQ(letimer_underflow_expired);
-  events |= letimer_underflow_expired;
+  EvtCirQ_EnQ(letimer_underflow_expired);
   CORE_EXIT_CRITICAL();
 }
 
@@ -132,8 +130,7 @@ void schedulerSetEventReadTemp(){
 void schedulerSetEventWaitUs(){
   CORE_DECLARE_IRQ_STATE;
   CORE_ENTER_CRITICAL();                                            //Enter critical section while processing the queue
-  //EvtCirQ_EnQ(letimer_comp1_expired);
-  events |= letimer_comp1_expired;
+  EvtCirQ_EnQ(letimer_comp1_expired);
   CORE_EXIT_CRITICAL();
 }
 
@@ -143,8 +140,7 @@ void schedulerSetEventWaitUs(){
 void schedulerSetEventI2Cdone(){
   CORE_DECLARE_IRQ_STATE;
   CORE_ENTER_CRITICAL();                                            //Enter critical section while processing the queue
-  //EvtCirQ_EnQ(i2c_done);
-  events |= i2c_done;
+  EvtCirQ_EnQ(i2c_done);
   CORE_EXIT_CRITICAL();
 }
 
@@ -155,24 +151,15 @@ uint32_t getNextEvent(){
   uint32_t theEvent;
   CORE_DECLARE_IRQ_STATE;
   CORE_ENTER_CRITICAL();                                             //Enter critical section while processing the queue
-
-  //theEvent = EvtCirQ_DeQ();
-  if (events & letimer_underflow_expired) {
-      theEvent = letimer_underflow_expired;  // return
-      events   ^= letimer_underflow_expired; // clear
-  }
-  if (events & letimer_comp1_expired) {
-      theEvent = letimer_comp1_expired;  // return
-      events   ^= letimer_comp1_expired; // clear
-  }
-  if (events & i2c_done) {
-      theEvent = i2c_done;  // return
-      events   ^= i2c_done; // clear
-  }
+  theEvent = EvtCirQ_DeQ();
   CORE_EXIT_CRITICAL();
   return theEvent;
 }
-
+/**
+ * Event driven state machine for temperature measurement.
+ * Scheduler only wakes up when the event is set, otherwise sleep in EM3
+ * @param: the event number flag
+ * */
 void temp_measure_state_machine(uint32_t evt){
   state_t current_state;
   static state_t next_state = STATE_IDLE;
@@ -184,12 +171,9 @@ void temp_measure_state_machine(uint32_t evt){
       next_state = STATE_IDLE;
 
       if(evt== letimer_underflow_expired ){
-          //si7021_enable();
-          //DOS timerWaitUs_irq(SI7021_ENABLE_TIME_US);
-          timerWaitUs_irq(500000);
+          si7021_enable();
+          timerWaitUs_irq(SI7021_ENABLE_TIME_US);
           next_state = STATE_SENSOR_POWER_ON;
-          LOG_INFO("To 1");                   //3000
-          gpioLed0SetOn();
       }
       break;
 
@@ -197,46 +181,40 @@ void temp_measure_state_machine(uint32_t evt){
       next_state = STATE_SENSOR_POWER_ON;
 
       if(evt == letimer_comp1_expired){
-          //sl_power_manager_add_em_requirement(EM1);
-          //si7021_send_temp_cmd();
-          //next_state = STATE_I2C_WRITING;
-          next_state = STATE_IDLE;
-          LOG_INFO("To 0");                  //3080+
-          gpioLed0SetOff();
+          sl_power_manager_add_em_requirement(EM1);
+          si7021_send_temp_cmd();
+          next_state = STATE_I2C_WRITING;
       }
       break;
-//
-//    case STATE_I2C_WRITING:
-//      next_state = STATE_I2C_WRITING;
-//      if(evt == i2c_done){
-//          timerWaitUs_irq(SI7021_CNVRT_TIME_US);
-//          sl_power_manager_remove_em_requirement(EM1);
-//          next_state = STATE_I2C_READING;
-//          LOG_INFO("To 3");
-//      }
-//      break;
-//
-//    case STATE_I2C_READING:
-//      next_state = STATE_I2C_READING;
-//      if(evt == letimer_comp1_expired){
-//          sl_power_manager_add_em_requirement(EM1);
-//          si7021_read_temp_cmd();
-//          next_state = STATE_SENSOR_CLEAN_UP;
-//          LOG_INFO("To 4");
-//      }
-//      break;
-//
-//    case STATE_SENSOR_CLEAN_UP:
-//      next_state = STATE_SENSOR_CLEAN_UP;
-//      if(evt == i2c_done){
-//          si7021_disable();
-//          log_temp();
-//          NVIC_DisableIRQ(I2C0_IRQn);
-//          sl_power_manager_remove_em_requirement(EM1);
-//          next_state = STATE_IDLE;
-//          LOG_INFO("To 0");
-//      }
-//      break;
+
+    case STATE_I2C_WRITING:
+      next_state = STATE_I2C_WRITING;
+      if(evt == i2c_done){
+          timerWaitUs_irq(SI7021_CNVRT_TIME_US);
+          sl_power_manager_remove_em_requirement(EM1);
+          next_state = STATE_I2C_READING;
+      }
+      break;
+
+    case STATE_I2C_READING:
+      next_state = STATE_I2C_READING;
+      if(evt == letimer_comp1_expired){
+          sl_power_manager_add_em_requirement(EM1);
+          si7021_read_temp_cmd();
+          next_state = STATE_SENSOR_CLEAN_UP;
+      }
+      break;
+
+    case STATE_SENSOR_CLEAN_UP:
+      next_state = STATE_SENSOR_CLEAN_UP;
+      if(evt == i2c_done){
+          si7021_disable();
+          log_temp();
+          NVIC_DisableIRQ(I2C0_IRQn);
+          sl_power_manager_remove_em_requirement(EM1);
+          next_state = STATE_IDLE;
+      }
+      break;
 
 
 

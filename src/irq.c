@@ -36,14 +36,7 @@
 
 static uint32_t timestamp = 0;                         //allow to call within irq.c
 
-/*
-static void ts_increment(){
-  CORE_DECLARE_IRQ_STATE;
-  CORE_ENTER_CRITICAL();                               //Enter critical section
-  timestamp += ACTUAL_COMP0_LOAD;
-  CORE_EXIT_CRITICAL();
-}
-*/
+
 
 /***
  * Handle LETIMER0 interrupt
@@ -53,26 +46,26 @@ void LETIMER0_IRQHandler(void){
 
   int letimer_flag = LETIMER_IntGetEnabled(LETIMER0);  //determine source of IRQ
   LETIMER_IntClear(LETIMER0,letimer_flag);
-
   if(letimer_flag & LETIMER_IF_UF) {
-    //gpioLed1SetOn();
-    //ts_increment();
     timestamp += ACTUAL_COMP0_LOAD;
     schedulerSetEventReadTemp();                       //Set read Si7021 event when UF
   }
 
   if(letimer_flag & LETIMER_IF_COMP1){
-    //gpioLed1SetOff();
     LETIMER_IntDisable(LETIMER0, LETIMER_IF_COMP1);
     schedulerSetEventWaitUs();
   }
 
 }
 
-
+/**
+ * Handle I2C0 interrupt events
+ * */
 void I2C0_IRQHandler(void){
   I2C_TransferReturn_TypeDef transferStatus;
   transferStatus = I2C_Transfer(I2C0);
+
+  //Set event when I2C transmission is finished
   if(transferStatus==i2cTransferDone){
       schedulerSetEventI2Cdone();
   }
@@ -81,14 +74,9 @@ void I2C0_IRQHandler(void){
   }
 }
 
-
+/**
+ * Return the timestamps values with 3 second resolution
+ * */
 uint32_t letimerMilliseconds(){
-  //uint32_t time_ms = 0, tik = 0;
-  //CORE_DECLARE_IRQ_STATE;
-  //CORE_ENTER_CRITICAL();                               //Enter critical section
-  //tik = LETIMER_PERIOD_MS - LETIMER_CounterGet(LETIMER0);
-  //time_ms = (tik*S_TO_MS)/ACTUAL_CLK_FREQ;
-  //timestamp += time_ms;
-  //CORE_EXIT_CRITICAL();
   return timestamp;
 }
