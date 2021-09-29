@@ -52,19 +52,23 @@ uint8_t *get_connection_handle(){
 }
 
 
-
+void ble_data_init(){
+  ble_data_struct_t *ble_data_loc = get_ble_data();
+  ble_data_loc->htm_indication_enable = false;
+  ble_data_loc->htm_connection_enable = false;
+  ble_data_loc->htm_indication_on_flight = false;
+}
 
 
 void handle_ble_event(sl_bt_msg_t *evt){
-  ble_data_struct_t *ble_data = get_ble_data();
+  ble_data_struct_t *ble_data_loc = get_ble_data();
   sl_status_t sc;
 
   switch(SL_BT_MSG_ID(evt->header)){
     //Events common to both servers and clients
 
     case sl_bt_evt_system_boot_id:
-        ble_data->htm_indication_enable = false;
-        ble_data->htm_connection_enable = false;
+        ble_data_init();
 
         sc = sl_bt_advertiser_create_set(&advertising_set_handle);
         app_assert_status(sc);
@@ -85,7 +89,7 @@ void handle_ble_event(sl_bt_msg_t *evt){
 
       /**Call when client connected**/
     case sl_bt_evt_connection_opened_id:
-      ble_data->htm_connection_enable = true;
+      ble_data_loc->htm_connection_enable = true;
       connection_handle = evt->data.evt_connection_opened.connection;
       sc = sl_bt_connection_set_parameters( connection_handle,
                                             MIN_CNT_INTERVAL,
@@ -103,7 +107,7 @@ void handle_ble_event(sl_bt_msg_t *evt){
 
       /**Call when a connection closed**/
     case sl_bt_evt_connection_closed_id:
-      ble_data->htm_connection_enable = false;
+      ble_data_loc->htm_connection_enable = false;
       sc = sl_bt_advertiser_start(
              advertising_set_handle,
              sl_bt_advertiser_general_discoverable,
@@ -128,13 +132,19 @@ void handle_ble_event(sl_bt_msg_t *evt){
       // DOS: How can we distinguish between CCCD writes (enabling/disabling indications) and
       //      indication confirmations received from the Client?
     case sl_bt_evt_gatt_server_characteristic_status_id:
-      if(evt->data.evt_gatt_server_characteristic_status.characteristic ==gattdb_temperature_measurement){
-          if(evt->data.evt_gatt_server_characteristic_status.client_config_flags == 0x02) {
-            ble_data->htm_indication_enable = true;
-            LOG_INFO("HTM Indications are On"); // DOS
-          } else if(evt->data.evt_gatt_server_characteristic_status.client_config_flags == 0x0) {
-            ble_data->htm_indication_enable = false;
-            LOG_INFO("HTM Indications are Off"); // DOS
+      if((evt->data.evt_gatt_server_characteristic_status.characteristic ==gattdb_temperature_measurement))
+        {
+          if(evt->data.evt_gatt_server_characteristic_status.status_flags ==sl_bt_gatt_server_client_config){            //Configuration changed
+            if(evt->data.evt_gatt_server_characteristic_status.client_config_flags == sl_bt_gatt_server_indication) {     //Indication enable
+              ble_data_loc->htm_indication_enable = true;
+              LOG_INFO("HTM Indications are On");
+            } else if(evt->data.evt_gatt_server_characteristic_status.client_config_flags == sl_bt_gatt_server_disable) { // Indication disable
+              ble_data_loc->htm_indication_enable = false;
+              LOG_INFO("HTM Indications are Off");
+            }
+          }else if(evt->data.evt_gatt_server_characteristic_status.status_flags ==sl_bt_gatt_server_confirmation){       //confirmation from client
+              ble_data_loc->htm_indication_on_flight = false;
+              LOG_INFO("HTM Indications received");
           }
       }
       break;

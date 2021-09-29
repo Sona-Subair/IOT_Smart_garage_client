@@ -57,6 +57,7 @@ typedef struct {
   //value that are common to servers and clients
   bool htm_indication_enable;
   bool htm_connection_enable;
+  bool htm_indication_on_flight;
   //value unique for server
 
   //value unique for client

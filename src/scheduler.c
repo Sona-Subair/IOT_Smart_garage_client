@@ -150,37 +150,43 @@ void schedulerSetEventI2Cdone(){
 
 void update_and_send_indication(){
   sl_status_t sc;
-
-  uint8_t htm_temperature_buffer[5];
-  uint8_t *p=htm_temperature_buffer;
-  uint32_t htm_temperature_flt;
-
   ble_data_struct_t *ble_data_loc = get_ble_data();
   uint8_t *connection_handle_loc = get_connection_handle();
   set_temp();
   uint32_t *temp_c = get_temperature_in_c();
-  //Convert sensor data to IEEE-11073 32 bit floating point format
-  htm_temperature_flt = UINT32_TO_FLOAT(temp_c, 0);                 /**WHY!!?**/
 
-  // DOS: Missing flags byte in htm_temperature_buffer
+  uint8_t   htm_temperature_buffer[5];   // Stores the temperature data in the Health Thermometer (HTM) format.
+                                         // format of the buffer is: flags_byte + 4-bytes of IEEE-11073 32-bit float
+  uint8_t   *p = htm_temperature_buffer; // Pointer to HTM temperature buffer needed for converting values to bitstream.
+  uint32_t  htm_temperature_flt;         // Stores the temperature data read from the sensor in the IEEE-11073 32-bit float format
+  uint8_t   flags = 0x00;                // HTM flags set as 0 for Celsius, no time stamp and no temperature type.
 
-  //Convert temperature to bit stream and place it in the htm_temperature_buffer
-  UINT32_TO_BITSTREAM(p,htm_temperature_flt);
+  // "bitstream" refers to the order of bytes and bits sent. byte[0] is sent first, followed by byte[1]...
+  UINT8_TO_BITSTREAM(p, flags);           // put the flags byte in first, "convert" is a strong word, it places the byte into the buffer
 
-  //Write local GATT DB
-  sc = sl_bt_gatt_server_write_attribute_value(gattdb_temperature_measurement,
-                                               0,
-                                               5,
-                                               &htm_temperature_buffer[0]);
+  // Convert sensor data to IEEE-11073 32-bit floating point format.
+  htm_temperature_flt = UINT32_TO_FLOAT(temp_c, 0); // Convert temperature to bitstream and place it in the htm_temperature_buffer
+  UINT32_TO_BITSTREAM(p, htm_temperature_flt);
+
+  // Write our local GATT DB
+  sc = sl_bt_gatt_server_write_attribute_value( gattdb_temperature_measurement, // handle from gatt_db.h
+                                                0,                              // offset
+                                                5,                              // length
+                                                &htm_temperature_buffer[0]      // pointer to buffer where data is
+                                              );
   app_assert_status(sc);
-  if((ble_data_loc->htm_indication_enable == true) && (ble_data_loc->htm_connection_enable == true)){
-      sc=sl_bt_gatt_server_send_indication(*connection_handle_loc,
-                                           gattdb_temperature_measurement,
-                                           5,
-                                           &htm_temperature_buffer[0]);
-      app_assert_status(sc);
-      LOG_INFO("Sent HTM indication, temp in C=%d", (int) *temp_c); // DOS
-  }
+
+  if((ble_data_loc->htm_indication_enable == true) && (ble_data_loc->htm_connection_enable == true) &&
+      (ble_data_loc->htm_indication_on_flight == false))
+    {
+        sc=sl_bt_gatt_server_send_indication(*connection_handle_loc,
+                                             gattdb_temperature_measurement,
+                                             5,
+                                             &htm_temperature_buffer[0]);
+        app_assert_status(sc);
+        ble_data_loc->htm_indication_on_flight = true;
+        LOG_INFO("Sent HTM indication, temp in C=%d", (int) *temp_c);
+    }
 }
 
 /**
