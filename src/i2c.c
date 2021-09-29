@@ -35,7 +35,8 @@
 #define INCLUDE_LOG_DEBUG 1
 #include "src/log.h"
 
-#include "stdio.h"
+#include <stdio.h>
+#include <stdint.h>
 
 
 /**
@@ -46,6 +47,11 @@ I2C_TransferSeq_TypeDef    sequence;
 uint8_t                    cmd_data;
 uint8_t                    rd_data[2];
 
+uint32_t temperature_in_c;
+
+uint32_t* get_temperature_in_c(){
+  return (&temperature_in_c);
+}
 /**
  * Initialize I2C using I2CSPM_Init and route to the si7021 sensor
  * */
@@ -100,27 +106,25 @@ void si7021_read_temp_cmd(){
 
 }
 
-//Attribute:
-  //this line of conversion code is taken from sluiter's
-  //in order to suppress unused variable warning
-void log_temp(){
-    uint32_t temperature_in_c = rd_data[1] | rd_data[0]<<8;
-    temperature_in_c = (uint32_t) ((175.72 * (float)temperature_in_c)/65536.0) - 46.85;
-    LOG_INFO("Temperature %d C\n", (int)temperature_in_c);
+
+void set_temp(){
+  temperature_in_c = rd_data[1] | rd_data[0]<<8;
+  temperature_in_c = (uint32_t) ((175.72 * (float)temperature_in_c)/65536.0) - 46.85;
 }
+
 
 /**
  * Enable SENSOR_ENABLE PIN for si7021 in the schematic
  * to enable the sensor
  * */
 void si7021_enable(){
-    GPIO_PinModeSet(SI7021_PORT,SI7021_PIN,gpioModePushPull,ENABLE);
+  GPIO_PinModeSet(SI7021_PORT,SI7021_PIN,gpioModePushPull,ENABLE);
 }
 /**
  * Disable SENSOR_ENABLE PIN for si7021 in the schematic
  * to disable the sensor
  * */
 void si7021_disable(){
-    GPIO_PinModeSet(SI7021_PORT,SI7021_PIN,gpioModePushPull,DISABLE);
+  GPIO_PinModeSet(SI7021_PORT,SI7021_PIN,gpioModePushPull,DISABLE);
 }
 

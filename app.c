@@ -47,7 +47,7 @@
 #include "src/scheduler.h"
 #include "src/i2c.h"
 
-
+#include "src/ble.h"
 
 /*****************************************************************************
  * Application Power Manager callbacks
@@ -92,7 +92,7 @@ SL_WEAK void app_init(void)
   cmu_init();
   letimer_init();
   gpioInit();
-  EvtCirQ_init();
+  //EvtCirQ_init();
 
 #if((LOWEST_ENERGY_MODE==EM1) || (LOWEST_ENERGY_MODE==EM2))
       sl_power_manager_add_em_requirement(LOWEST_ENERGY_MODE);
@@ -133,11 +133,11 @@ SL_WEAK void app_process_action(void)
   //         later assignments.
 
 
-  uint32_t evt;
-
-  evt = getNextEvent();
-
-  temp_measure_state_machine(evt);
+//  uint32_t evt;
+//
+//  evt = getNextEvent();
+//
+//  temp_measure_state_machine(evt);
 
 }
 
@@ -152,20 +152,13 @@ SL_WEAK void app_process_action(void)
  *****************************************************************************/
 void sl_bt_on_event(sl_bt_msg_t *evt)
 {
-  
-  // Just a trick to hide a compiler warning about unused input parameter evt.
-  // We will add real functionality here later.
-  if (evt->header) {
-      printf(".\n");
-  }
-
   // Some events require responses from our application code,
   // and don’t necessarily advance our state machines.
   // For assignment 5 uncomment the next 2 function calls
-  // handle_ble_event(evt); // put this code in ble.c/.h
+   handle_ble_event(evt); // put this code in ble.c/.h
 
   // sequence through states driven by events
-  // state_machine(evt);    // put this code in scheduler.c/.h
+   temp_measure_state_machine(evt);    // put this code in scheduler.c/.h
   
   
    

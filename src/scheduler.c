@@ -35,8 +35,8 @@
 #define INCLUDE_LOG_DEBUG 1
 #include "src/log.h"
 
-
-
+#include "ble.h"
+#include "gatt_db.h"
 
 EventQueue_t EvtQ;
 
@@ -44,12 +44,14 @@ EventQueue_t *getEvQ(){
   return (&EvtQ);
 }
 
+
+
 /**
  * This function initialize the circular queue struct
  * @param: void
  * return void
  */
-
+/*
 void EvtCirQ_init(){
   CORE_DECLARE_IRQ_STATE;
   CORE_ENTER_CRITICAL();
@@ -57,7 +59,7 @@ void EvtCirQ_init(){
   EvtQ.tail = -1;
   CORE_EXIT_CRITICAL();
 }
-
+*/
 
 //Attribute:
 //CirQ idea: https://www.geeksforgeeks.org/circular-queue-set-1-introduction-array-implementation/
@@ -68,7 +70,7 @@ void EvtCirQ_init(){
  *          false if the queue is full and cant
  *          be enqueued
  * */
-
+/*
 static bool EvtCirQ_EnQ(uint32_t event){
   //Case 1: FIFO is full
   if(((EvtQ.head==0) &&( EvtQ.tail==CIR_QUEUE_SIZE-1)) ||
@@ -88,13 +90,13 @@ static bool EvtCirQ_EnQ(uint32_t event){
   }
   return true;
 }
-
+*/
 
 /**
  * dequeue the event
  * @return: return the head of the event in the queue
  * */
-
+/*
 static int EvtCirQ_DeQ(){
   //Empty Queue
   if((EvtQ.head==-1) && (EvtQ.tail==-1)){
@@ -112,7 +114,7 @@ static int EvtCirQ_DeQ(){
   }
   return event;
 }
-
+*/
 
 /**
  * set read temperature event to the queue
@@ -120,7 +122,7 @@ static int EvtCirQ_DeQ(){
 void schedulerSetEventReadTemp(){
   CORE_DECLARE_IRQ_STATE;
   CORE_ENTER_CRITICAL();                                            //Enter critical section while processing the queue
-  EvtCirQ_EnQ(letimer_underflow_expired);
+  sl_bt_external_signal(letimer_underflow_expired);
   CORE_EXIT_CRITICAL();
 }
 
@@ -130,7 +132,7 @@ void schedulerSetEventReadTemp(){
 void schedulerSetEventWaitUs(){
   CORE_DECLARE_IRQ_STATE;
   CORE_ENTER_CRITICAL();                                            //Enter critical section while processing the queue
-  EvtCirQ_EnQ(letimer_comp1_expired);
+  sl_bt_external_signal(letimer_comp1_expired);
   CORE_EXIT_CRITICAL();
 }
 
@@ -140,30 +142,68 @@ void schedulerSetEventWaitUs(){
 void schedulerSetEventI2Cdone(){
   CORE_DECLARE_IRQ_STATE;
   CORE_ENTER_CRITICAL();                                            //Enter critical section while processing the queue
-  EvtCirQ_EnQ(i2c_done);
+  sl_bt_external_signal(i2c_done);
   CORE_EXIT_CRITICAL();
+}
+
+
+
+void update_and_send_indication(){
+  sl_status_t sc;
+
+  uint8_t htm_temperature_buffer[5];
+  uint8_t *p=htm_temperature_buffer;
+  uint32_t htm_temperature_flt;
+
+  ble_data_struct_t *ble_data_loc = get_ble_data();
+  uint8_t *connection_handle_loc = get_connection_handle();
+  set_temp();
+  uint32_t *temp_c = get_temperature_in_c();
+  //Convert sensor data to IEEE-11073 32 bit floating point format
+  htm_temperature_flt = UINT32_TO_FLOAT(temp_c, 0);                 /**WHY!!?**/
+
+  //Convert temperature to bit stream and place it in the htm_temperature_buffer
+  UINT32_TO_BITSTREAM(p,htm_temperature_flt);
+
+  //Write local GATT DB
+  sc = sl_bt_gatt_server_write_attribute_value(gattdb_temperature_measurement,
+                                               0,
+                                               5,
+                                               &htm_temperature_buffer[0]);
+  app_assert_status(sc);
+  if((ble_data_loc->htm_indication_enable == true) && (ble_data_loc->htm_connection_enable == true)){
+      sc=sl_bt_gatt_server_send_indication(*connection_handle_loc,
+                                           gattdb_temperature_measurement,
+                                           5,
+                                           &htm_temperature_buffer[0]);
+      LOG_INFO("TEMPERATURE");
+      app_assert_status(sc);
+  }
 }
 
 /**
  * get the next event from the queue
  * */
-uint32_t getNextEvent(){
-  uint32_t theEvent;
-  CORE_DECLARE_IRQ_STATE;
-  CORE_ENTER_CRITICAL();                                             //Enter critical section while processing the queue
-  theEvent = EvtCirQ_DeQ();
-  CORE_EXIT_CRITICAL();
-  return theEvent;
-}
+//uint32_t getNextEvent(){
+//  uint32_t theEvent;
+//  CORE_DECLARE_IRQ_STATE;
+//  CORE_ENTER_CRITICAL();                                             //Enter critical section while processing the queue
+//  theEvent = EvtCirQ_DeQ();
+//  CORE_EXIT_CRITICAL();
+//  return theEvent;
+//}
 /**
  * Event driven state machine for temperature measurement.
  * Scheduler only wakes up when the event is set, otherwise sleep in EM3
  * @param: the event number flag
  * */
-void temp_measure_state_machine(uint32_t evt){
+void temp_measure_state_machine(sl_bt_msg_t *evt_struct){
+
   state_t current_state;
   static state_t next_state = STATE_IDLE;
   current_state = next_state;
+
+  uint32_t evt = evt_struct->data.evt_system_external_signal.extsignals;
 
   switch(current_state){
 
@@ -209,8 +249,8 @@ void temp_measure_state_machine(uint32_t evt){
       next_state = STATE_SENSOR_CLEAN_UP;
       if(evt == i2c_done){
           si7021_disable();
-          log_temp();
           NVIC_DisableIRQ(I2C0_IRQn);
+          update_and_send_indication();
           sl_power_manager_remove_em_requirement(EM1);
           next_state = STATE_IDLE;
       }

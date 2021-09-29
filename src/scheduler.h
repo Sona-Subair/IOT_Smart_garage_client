@@ -73,9 +73,10 @@ typedef struct EventQueue_s{
 EventQueue_t *getEvQ();
 void EvtCirQ_init();
 void schedulerSetEventReadTemp();
+void update_and_send_indication();
 void schedulerSetEventWaitUs();
 void schedulerSetEventI2Cdone();
-void temp_measure_state_machine(uint32_t evt);
+void temp_measure_state_machine(sl_bt_msg_t *evt_struct);
 uint32_t getNextEvent();
 
 #endif /* SRC_SCHEDULER_H_ */

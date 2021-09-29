@@ -57,7 +57,7 @@
 #define EM1 1
 #define EM2 2
 #define EM3 3
-#define LOWEST_ENERGY_MODE EM3
+#define LOWEST_ENERGY_MODE EM2
 
 
 //LETIMER definition

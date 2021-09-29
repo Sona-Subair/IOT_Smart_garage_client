@@ -55,7 +55,9 @@
 
 //Function prototype
 void i2c_init();
-void log_temp();
+void set_temp();
+uint32_t* get_temperature_in_c();
+void write_temp_attribute();
 void si7021_enable();
 void si7021_disable();
 void si7021_send_temp_cmd();
