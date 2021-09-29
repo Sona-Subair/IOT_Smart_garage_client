@@ -126,11 +126,11 @@ void handle_ble_event(sl_bt_msg_t *evt){
 
       /**Call when change of CCCD or indication confirmation received by client**/
     case sl_bt_evt_gatt_server_characteristic_status_id:
-      if(evt->data.evt_gatt_server_characteristic_status.client_config_flags == sl_bt_gatt_server_indication){
-          ble_data->htm_indication_enable = true;
-      }else if(evt->data.evt_gatt_server_characteristic_status.client_config_flags == sl_bt_gatt_server_disable){
-          ble_data->htm_indication_enable = false;
-          LOG_INFO("INDI DISABLE");
+      if(evt->data.evt_gatt_server_characteristic_status.characteristic ==gattdb_temperature_measurement){
+          if(evt->data.evt_gatt_server_characteristic_status.client_config_flags == 0x02)
+            ble_data->htm_indication_enable = true;
+          else if(evt->data.evt_gatt_server_characteristic_status.client_config_flags == 0x0)
+            ble_data->htm_indication_enable = false;
       }
       break;
 

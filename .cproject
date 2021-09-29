@@ -93,7 +93,7 @@
                                 								
                                 <option id="gnu.c.compiler.option.warnings.extrawarn.663374058" name="Extra warnings (-Wextra)" superClass="gnu.c.compiler.option.warnings.extrawarn" useByScannerDiscovery="false" value="true" valueType="boolean"/>
                                 								
-                                <option id="gnu.c.compiler.option.warnings.toerrors.1635312282" name="Warnings as errors (-Werror)" superClass="gnu.c.compiler.option.warnings.toerrors" useByScannerDiscovery="false" value="true" valueType="boolean"/>
+                                <option id="gnu.c.compiler.option.warnings.toerrors.1635312282" name="Warnings as errors (-Werror)" superClass="gnu.c.compiler.option.warnings.toerrors" useByScannerDiscovery="false" value="false" valueType="boolean"/>
                                 								
                                 <option id="gnu.c.compiler.option.warnings.pedantic.1889995347" name="Pedantic (-pedantic)" superClass="gnu.c.compiler.option.warnings.pedantic" useByScannerDiscovery="false" value="false" valueType="boolean"/>
                                 								
@@ -525,6 +525,14 @@
     	
     <storageModule moduleId="org.eclipse.cdt.make.core.buildtargets"/>
     	
-    <storageModule moduleId="refreshScope"/>
+    <storageModule moduleId="refreshScope" versionNumber="2">
+        		
+        <configuration configurationName="GNU ARM v10.2.1 - Default">
+            			
+            <resource resourceType="PROJECT" workspacePath="/ecen5823-assignment5-JiabinLin12"/>
+            		
+        </configuration>
+        	
+    </storageModule>
     
 </cproject>

@@ -176,7 +176,6 @@ void update_and_send_indication(){
                                            gattdb_temperature_measurement,
                                            5,
                                            &htm_temperature_buffer[0]);
-      LOG_INFO("TEMPERATURE");
       app_assert_status(sc);
   }
 }
