@@ -125,12 +125,17 @@ void handle_ble_event(sl_bt_msg_t *evt){
       break;
 
       /**Call when change of CCCD or indication confirmation received by client**/
+      // DOS: How can we distinguish between CCCD writes (enabling/disabling indications) and
+      //      indication confirmations received from the Client?
     case sl_bt_evt_gatt_server_characteristic_status_id:
       if(evt->data.evt_gatt_server_characteristic_status.characteristic ==gattdb_temperature_measurement){
-          if(evt->data.evt_gatt_server_characteristic_status.client_config_flags == 0x02)
+          if(evt->data.evt_gatt_server_characteristic_status.client_config_flags == 0x02) {
             ble_data->htm_indication_enable = true;
-          else if(evt->data.evt_gatt_server_characteristic_status.client_config_flags == 0x0)
+            LOG_INFO("HTM Indications are On"); // DOS
+          } else if(evt->data.evt_gatt_server_characteristic_status.client_config_flags == 0x0) {
             ble_data->htm_indication_enable = false;
+            LOG_INFO("HTM Indications are Off"); // DOS
+          }
       }
       break;
 

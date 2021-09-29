@@ -162,6 +162,8 @@ void update_and_send_indication(){
   //Convert sensor data to IEEE-11073 32 bit floating point format
   htm_temperature_flt = UINT32_TO_FLOAT(temp_c, 0);                 /**WHY!!?**/
 
+  // DOS: Missing flags byte in htm_temperature_buffer
+
   //Convert temperature to bit stream and place it in the htm_temperature_buffer
   UINT32_TO_BITSTREAM(p,htm_temperature_flt);
 
@@ -177,6 +179,7 @@ void update_and_send_indication(){
                                            5,
                                            &htm_temperature_buffer[0]);
       app_assert_status(sc);
+      LOG_INFO("Sent HTM indication, temp in C=%d", (int) *temp_c); // DOS
   }
 }
 
