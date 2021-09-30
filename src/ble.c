@@ -102,7 +102,6 @@ void handle_ble_event(sl_bt_msg_t *evt){
 
       sc = sl_bt_advertiser_stop(advertising_set_handle);
       app_assert_status(sc);
-      LOG_INFO("SUP CON OPEN %d", connection_handle);
       break;
 
       /**Call when a connection closed**/
@@ -119,7 +118,7 @@ void handle_ble_event(sl_bt_msg_t *evt){
     /**Call when parameters are set**/
     case sl_bt_evt_connection_parameters_id:
 #if (PRINT_PARAMS)
-      LOG_INFO("interval=%d, latency=%d, timeout=%d",evt->data.evt_connection_parameters.interval,
+      LOG_INFO("interval=%d, latency=%d, timeout=%d",(evt->data.evt_connection_parameters.interval*1.25),
                evt->data.evt_connection_parameters.latency,
                evt->data.evt_connection_parameters.timeout );
 #endif
@@ -129,22 +128,17 @@ void handle_ble_event(sl_bt_msg_t *evt){
       break;
 
       /**Call when change of CCCD or indication confirmation received by client**/
-      // DOS: How can we distinguish between CCCD writes (enabling/disabling indications) and
-      //      indication confirmations received from the Client?
     case sl_bt_evt_gatt_server_characteristic_status_id:
       if((evt->data.evt_gatt_server_characteristic_status.characteristic ==gattdb_temperature_measurement))
         {
           if(evt->data.evt_gatt_server_characteristic_status.status_flags ==sl_bt_gatt_server_client_config){            //Configuration changed
             if(evt->data.evt_gatt_server_characteristic_status.client_config_flags == sl_bt_gatt_server_indication) {     //Indication enable
               ble_data_loc->htm_indication_enable = true;
-              LOG_INFO("HTM Indications are On");
             } else if(evt->data.evt_gatt_server_characteristic_status.client_config_flags == sl_bt_gatt_server_disable) { // Indication disable
               ble_data_loc->htm_indication_enable = false;
-              LOG_INFO("HTM Indications are Off");
             }
           }else if(evt->data.evt_gatt_server_characteristic_status.status_flags ==sl_bt_gatt_server_confirmation){       //confirmation from client
               ble_data_loc->htm_indication_on_flight = false;
-              LOG_INFO("HTM Indications received");
           }
       }
       break;

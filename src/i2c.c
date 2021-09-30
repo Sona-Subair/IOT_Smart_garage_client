@@ -113,18 +113,4 @@ void set_temp(){
 }
 
 
-/**
- * Enable SENSOR_ENABLE PIN for si7021 in the schematic
- * to enable the sensor
- * */
-void si7021_enable(){
-  GPIO_PinModeSet(SI7021_PORT,SI7021_PIN,gpioModePushPull,ENABLE);
-}
-/**
- * Disable SENSOR_ENABLE PIN for si7021 in the schematic
- * to disable the sensor
- * */
-void si7021_disable(){
-  GPIO_PinModeSet(SI7021_PORT,SI7021_PIN,gpioModePushPull,DISABLE);
-}
 

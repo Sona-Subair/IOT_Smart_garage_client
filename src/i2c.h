@@ -47,8 +47,7 @@
 #define CMD_READ_TEMP       0xE0
 #define ENABLE              1
 #define DISABLE             0
-#define SI7021_PORT         gpioPortD
-#define SI7021_PIN          15
+
 #define SI7021_ENABLE_TIME_US   80000
 #define SI7021_CNVRT_TIME_US    11000
 
@@ -58,8 +57,7 @@ void i2c_init();
 void set_temp();
 uint32_t* get_temperature_in_c();
 void write_temp_attribute();
-void si7021_enable();
-void si7021_disable();
+
 void si7021_send_temp_cmd();
 void si7021_read_temp_cmd();
 #endif /* SRC_I2C_H_ */

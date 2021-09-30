@@ -30,7 +30,7 @@
 #include "scheduler.h"
 #include "em_core.h"
 #include "i2c.h"
-
+#include "gpio.h"
 // Include logging for this file
 #define INCLUDE_LOG_DEBUG 1
 #include "src/log.h"
@@ -146,7 +146,12 @@ void schedulerSetEventI2Cdone(){
   CORE_EXIT_CRITICAL();
 }
 
-
+static inline bool ok_to_indicate(){
+  ble_data_struct_t *ble_data_loc = get_ble_data();
+  return (ble_data_loc->htm_indication_enable &&
+          ble_data_loc->htm_connection_enable &&
+         !ble_data_loc->htm_indication_on_flight);
+}
 
 void update_and_send_indication(){
   sl_status_t sc;
@@ -165,28 +170,23 @@ void update_and_send_indication(){
   UINT8_TO_BITSTREAM(p, flags);           // put the flags byte in first, "convert" is a strong word, it places the byte into the buffer
 
   // Convert sensor data to IEEE-11073 32-bit floating point format.
-  htm_temperature_flt = UINT32_TO_FLOAT(temp_c, 0); // Convert temperature to bitstream and place it in the htm_temperature_buffer
+  htm_temperature_flt = UINT32_TO_FLOAT(*temp_c, 0); // Convert temperature to bitstream and place it in the htm_temperature_buffer
   UINT32_TO_BITSTREAM(p, htm_temperature_flt);
 
   // Write our local GATT DB
   sc = sl_bt_gatt_server_write_attribute_value( gattdb_temperature_measurement, // handle from gatt_db.h
                                                 0,                              // offset
                                                 5,                              // length
-                                                &htm_temperature_buffer[0]      // pointer to buffer where data is
-                                              );
+                                                &htm_temperature_buffer[0] );   // pointer to buffer where data is
+
   app_assert_status(sc);
 
-  if((ble_data_loc->htm_indication_enable == true) && (ble_data_loc->htm_connection_enable == true) &&
-      (ble_data_loc->htm_indication_on_flight == false))
-    {
-        sc=sl_bt_gatt_server_send_indication(*connection_handle_loc,
-                                             gattdb_temperature_measurement,
-                                             5,
-                                             &htm_temperature_buffer[0]);
-        app_assert_status(sc);
-        ble_data_loc->htm_indication_on_flight = true;
-        LOG_INFO("Sent HTM indication, temp in C=%d", (int) *temp_c);
-    }
+  sc=sl_bt_gatt_server_send_indication(*connection_handle_loc,
+                                       gattdb_temperature_measurement,
+                                       5,
+                                       &htm_temperature_buffer[0]);
+  app_assert_status(sc);
+  ble_data_loc->htm_indication_on_flight = true;
 }
 
 /**
@@ -206,6 +206,9 @@ void update_and_send_indication(){
  * @param: the event number flag
  * */
 void temp_measure_state_machine(sl_bt_msg_t *evt_struct){
+  if(!ok_to_indicate()){
+      return;
+  }
 
   state_t current_state;
   static state_t next_state = STATE_IDLE;

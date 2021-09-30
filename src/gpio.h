@@ -26,7 +26,8 @@
 #define LED1_port  gpioPortF
 #define LED1_pin   5
 
-
+#define SI7021_PORT         gpioPortD
+#define SI7021_PIN          15
 
 
 
@@ -39,7 +40,8 @@ void gpioLed0SetOn();
 void gpioLed0SetOff();
 void gpioLed1SetOn();
 void gpioLed1SetOff();
-
+void si7021_enable();
+void si7021_disable();
 
 
 

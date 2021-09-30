@@ -60,6 +60,22 @@ void gpioLed1SetOff()
 	GPIO_PinOutClear(LED1_port,LED1_pin);
 }
 
+/**
+ * Enable SENSOR_ENABLE PIN for si7021 in the schematic
+ * to enable the sensor
+ * */
+void si7021_enable(){
+  GPIO_PinOutSet(SI7021_PORT,SI7021_PIN);
+}
+/**
+ * Disable SENSOR_ENABLE PIN for si7021 in the schematic
+ * to disable the sensor
+ * */
+void si7021_disable(){
+  GPIO_PinOutClear(SI7021_PORT,SI7021_PIN);
+}
+
+
 
 
 
