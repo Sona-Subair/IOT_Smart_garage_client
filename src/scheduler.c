@@ -166,6 +166,11 @@ void update_and_send_indication(){
   uint32_t  htm_temperature_flt;         // Stores the temperature data read from the sensor in the IEEE-11073 32-bit float format
   uint8_t   flags = 0x00;                // HTM flags set as 0 for Celsius, no time stamp and no temperature type.
 
+  // DOS
+#if DEBUG
+  LOG_INFO("Temp=%d", (int) *temp_c);
+#endif
+
   // "bitstream" refers to the order of bytes and bits sent. byte[0] is sent first, followed by byte[1]...
   UINT8_TO_BITSTREAM(p, flags);           // put the flags byte in first, "convert" is a strong word, it places the byte into the buffer
 
@@ -206,22 +211,40 @@ void update_and_send_indication(){
  * @param: the event number flag
  * */
 void temp_measure_state_machine(sl_bt_msg_t *evt_struct){
+
+
+  state_t  current_state;
+  static   state_t next_state = STATE_IDLE;
+  uint32_t signal;
+
+  current_state = next_state; // advance to next on each call!!!
+
+
   if(!ok_to_indicate()){
       return;
   }
 
-  state_t current_state;
-  static state_t next_state = STATE_IDLE;
-  current_state = next_state;
+  // DOS: This is the signal, not the event ID!!!
+  //uint32_t evt = evt_struct->data.evt_system_external_signal.extsignals;
 
-  uint32_t evt = evt_struct->data.evt_system_external_signal.extsignals;
+  // This state machine only runs on sl_bt_evt_system_external_signal_id from
+  // our scheduler set event functions called by our ISRs!!!
+  if (SL_BT_MSG_ID(evt_struct->header) != sl_bt_evt_system_external_signal_id) {
+      return;
+  }
+
+  // Once we get here, now we can look inside the event data structure and the field extsignals
+  signal = evt_struct->data.evt_system_external_signal.extsignals;
 
   switch(current_state){
 
     case STATE_IDLE:
       next_state = STATE_IDLE;
 
-      if(evt== letimer_underflow_expired ){
+      if(signal== letimer_underflow_expired ){
+#if DEBUG
+          LOG_INFO("To1");
+#endif
           si7021_enable();
           timerWaitUs_irq(SI7021_ENABLE_TIME_US);
           next_state = STATE_SENSOR_POWER_ON;
@@ -231,7 +254,10 @@ void temp_measure_state_machine(sl_bt_msg_t *evt_struct){
     case STATE_SENSOR_POWER_ON:
       next_state = STATE_SENSOR_POWER_ON;
 
-      if(evt == letimer_comp1_expired){
+      if(signal == letimer_comp1_expired){
+#if DEBUG
+          LOG_INFO("To2");
+#endif
           sl_power_manager_add_em_requirement(EM1);
           si7021_send_temp_cmd();
           next_state = STATE_I2C_WRITING;
@@ -240,7 +266,10 @@ void temp_measure_state_machine(sl_bt_msg_t *evt_struct){
 
     case STATE_I2C_WRITING:
       next_state = STATE_I2C_WRITING;
-      if(evt == i2c_done){
+      if(signal == i2c_done){
+#if DEBUG
+          LOG_INFO("To3");
+#endif
           timerWaitUs_irq(SI7021_CNVRT_TIME_US);
           sl_power_manager_remove_em_requirement(EM1);
           next_state = STATE_I2C_READING;
@@ -249,7 +278,10 @@ void temp_measure_state_machine(sl_bt_msg_t *evt_struct){
 
     case STATE_I2C_READING:
       next_state = STATE_I2C_READING;
-      if(evt == letimer_comp1_expired){
+      if(signal == letimer_comp1_expired){
+#if DEBUG
+          LOG_INFO("To4");
+#endif
           sl_power_manager_add_em_requirement(EM1);
           si7021_read_temp_cmd();
           next_state = STATE_SENSOR_CLEAN_UP;
@@ -258,11 +290,14 @@ void temp_measure_state_machine(sl_bt_msg_t *evt_struct){
 
     case STATE_SENSOR_CLEAN_UP:
       next_state = STATE_SENSOR_CLEAN_UP;
-      if(evt == i2c_done){
+      if(signal == i2c_done){
           si7021_disable();
           NVIC_DisableIRQ(I2C0_IRQn);
           update_and_send_indication();
           sl_power_manager_remove_em_requirement(EM1);
+#if DEBUG
+          LOG_INFO("To0\n");
+#endif
           next_state = STATE_IDLE;
       }
       break;

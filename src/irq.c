@@ -47,6 +47,7 @@ void LETIMER0_IRQHandler(void){
   int letimer_flag = LETIMER_IntGetEnabled(LETIMER0);  //determine source of IRQ
   LETIMER_IntClear(LETIMER0,letimer_flag);
   if(letimer_flag & LETIMER_IF_UF) {
+    ToggleLED0 ();
     timestamp += ACTUAL_COMP0_LOAD;
     schedulerSetEventReadTemp();                       //Set read Si7021 event when UF
   }

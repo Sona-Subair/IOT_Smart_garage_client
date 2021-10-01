@@ -53,6 +53,9 @@
 #include "src/scheduler.h"
 #include "src/timers.h"
 
+// DOS: define this to print diagnostics
+#define DEBUG 1
+
 #define EM0 0
 #define EM1 1
 #define EM2 2

@@ -77,7 +77,19 @@ void si7021_disable(){
 
 
 
+// DOS
+void ToggleLED0 () {
+  static bool  state=false;
 
+  if (state) {
+      state = false;
+      gpioLed0SetOff();
+  } else {
+      state = true;
+      gpioLed0SetOn();
+  }
+
+}
 
 
 
