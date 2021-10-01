@@ -118,7 +118,7 @@ void handle_ble_event(sl_bt_msg_t *evt){
     /**Call when parameters are set**/
     case sl_bt_evt_connection_parameters_id:
 #if (PRINT_PARAMS)
-      LOG_INFO("interval=%d, latency=%d, timeout=%d",(evt->data.evt_connection_parameters.interval*1.25),
+      LOG_INFO("interval=%d, latency=%d, timeout=%d",(uint16_t)(evt->data.evt_connection_parameters.interval*1.25),
                evt->data.evt_connection_parameters.latency,
                evt->data.evt_connection_parameters.timeout );
 #endif
