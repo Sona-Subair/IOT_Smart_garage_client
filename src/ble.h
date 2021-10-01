@@ -32,6 +32,8 @@
 #include <stdbool.h>
 #include "sl_bt_api.h"
 
+#include "app.h"
+
 #define UINT8_TO_BITSTREAM(p,n)   {*(p)++ = (uint8_t)(n);}
 #define UINT32_TO_BITSTREAM(p,n)  {*(p)++ = (uint8_t)(n); *(p)++ = (uint8_t)((n)>>8); \
                                    *(p)++ = (uint8_t)((n)>>16); *(p)++=(uint8_t)((n)>>24);}

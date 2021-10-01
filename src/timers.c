@@ -144,6 +144,11 @@ void timerWaitUs_irq(uint32_t us_wait){
   if(final_tik > LETIMER_PERIOD_MS) {
       final_tik = LETIMER_PERIOD_MS - (0xFFFF-final_tik);
   }
+
+#if DEBUG
+  LOG_INFO("c=%d, f=%d", (int) cur_tik, (int) final_tik);
+#endif
+
   //Enable Comparator 1 interrupts
   LETIMER_CompareSet(LETIMER0,1,final_tik);
   LETIMER_IntClear(LETIMER0,IF_COMP1);
