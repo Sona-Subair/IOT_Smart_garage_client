@@ -43,7 +43,8 @@ void gpioLed1SetOff();
 void si7021_enable();
 void si7021_disable();
 
-
+//DOS
+void ToggleLED0 (void);
 
 
 #endif /* SRC_GPIO_H_ */

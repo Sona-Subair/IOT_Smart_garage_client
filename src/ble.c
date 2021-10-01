@@ -117,10 +117,11 @@ void handle_ble_event(sl_bt_msg_t *evt){
 
     /**Call when parameters are set**/
     case sl_bt_evt_connection_parameters_id:
-#if (PRINT_PARAMS)
-      LOG_INFO("interval=%d, latency=%d, timeout=%d",(uint16_t)(evt->data.evt_connection_parameters.interval*1.25),
-               evt->data.evt_connection_parameters.latency,
-               evt->data.evt_connection_parameters.timeout );
+#if (PRINT_PARAMS) // DOS: compiler error in formatting these parameters, included with ( ) and typecast to int
+      LOG_INFO("interval=%d, latency=%d, timeout=%d",
+               (int) (evt->data.evt_connection_parameters.interval*1.25),
+               (int) (evt->data.evt_connection_parameters.latency),
+               (int) (evt->data.evt_connection_parameters.timeout) );
 #endif
       break;
 
@@ -134,8 +135,14 @@ void handle_ble_event(sl_bt_msg_t *evt){
           if(evt->data.evt_gatt_server_characteristic_status.status_flags ==sl_bt_gatt_server_client_config){            //Configuration changed
             if(evt->data.evt_gatt_server_characteristic_status.client_config_flags == sl_bt_gatt_server_indication) {     //Indication enable
               ble_data_loc->htm_indication_enable = true;
+#if DEBUG
+              LOG_INFO("HTM indications On");
+#endif
             } else if(evt->data.evt_gatt_server_characteristic_status.client_config_flags == sl_bt_gatt_server_disable) { // Indication disable
               ble_data_loc->htm_indication_enable = false;
+#if DEBUG
+              LOG_INFO("HTM indications Off");
+#endif
             }
           }else if(evt->data.evt_gatt_server_characteristic_status.status_flags ==sl_bt_gatt_server_confirmation){       //confirmation from client
               ble_data_loc->htm_indication_on_flight = false;

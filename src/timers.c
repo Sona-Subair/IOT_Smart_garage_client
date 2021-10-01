@@ -133,17 +133,23 @@ void timerWaitUs_irq(uint32_t us_wait){
        us_wait = SI7021_ENABLE_TIME_US;
    }
   //Convert from us time request to the number of ticks required
-  uint16_t t_us    = S_TO_US/ACTUAL_CLK_FREQ;
-  uint16_t tik_req = us_wait/t_us;
+  float clk_period = (float)1/(float)(ACTUAL_CLK_FREQ);
+  float s_wait = (float)us_wait/(float)US_TO_S;
+  uint16_t tik_req = (uint16_t)(s_wait/clk_period);
 
   //Calculate the final tik needed
   uint16_t cur_tik = LETIMER_CounterGet(LETIMER0);
   uint16_t final_tik = (cur_tik - tik_req);         // target COMP1 value
 
   //Rollover case
-  if(final_tik > LETIMER_PERIOD_MS) {
+  if(final_tik > TIK_PER_PERIOD) {
       final_tik = LETIMER_PERIOD_MS - (0xFFFF-final_tik);
   }
+
+#if DEBUG
+  LOG_INFO("c=%d, f=%d", (int) cur_tik, (int) final_tik);
+#endif
+
   //Enable Comparator 1 interrupts
   LETIMER_CompareSet(LETIMER0,1,final_tik);
   LETIMER_IntClear(LETIMER0,IF_COMP1);

@@ -35,6 +35,7 @@
 #define MS_TO_US      1000
 #define US_TO_MS      1000
 #define S_TO_US       1000000
+#define US_TO_S       1000000
 #define S_TO_MS       1000
 
 //Function prototype

@@ -32,6 +32,8 @@
 #include <stdbool.h>
 #include "sl_bt_api.h"
 
+#include "app.h"
+
 #define UINT8_TO_BITSTREAM(p,n)   {*(p)++ = (uint8_t)(n);}
 #define UINT32_TO_BITSTREAM(p,n)  {*(p)++ = (uint8_t)(n); *(p)++ = (uint8_t)((n)>>8); \
                                    *(p)++ = (uint8_t)((n)>>16); *(p)++=(uint8_t)((n)>>24);}
@@ -52,7 +54,7 @@
 #define MAX_CNT_EVT_LENGTH  0xffff
 
 
-#define PRINT_PARAMS      1
+#define PRINT_PARAMS      0
 typedef struct {
   //value that are common to servers and clients
   bool htm_indication_enable;

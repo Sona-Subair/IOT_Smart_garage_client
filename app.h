@@ -53,6 +53,9 @@
 #include "src/scheduler.h"
 #include "src/timers.h"
 
+// DOS: define this to print diagnostics
+#define DEBUG 0
+
 #define EM0 0
 #define EM1 1
 #define EM2 2
@@ -62,14 +65,9 @@
 
 //LETIMER definition
 //Attribute: define is modified from lecture slides
-#define SHORT_TIME          1           //Set to 1 if use 2.25s T or 0 to 6.5s T
-#if (SHORT_TIME)
 #define LETIMER_PERIOD_MS   3000        //LETIMER period
 #define LETIMER_ON_TIME_MS  175         //LED on time
-#else
-#define LETIMER_PERIOD_MS   6500        //LETIMER period
-#define LETIMER_ON_TIME_MS  1000        //LED on time
-#endif
+
 #if (LOWEST_ENERGY_MODE!=EM3)           //Parameters in EM0,1,2
 #define LFXO_FREQ           32768       //LFXO frequency
 #define PRESCALER_VALUE     4           //clock divisible value
@@ -79,6 +77,8 @@
 #define PRESCALER_VALUE     1           //clock divisible value
 #define ACTUAL_CLK_FREQ     ULFRCO_FREQ/PRESCALER_VALUE   //Frequency after clock division
 #endif
+#define TIK_PER_PERIOD      ACTUAL_CLK_FREQ*(LETIMER_PERIOD_MS/1000)
+
 #define ACTUAL_COMP0_LOAD   (LETIMER_PERIOD_MS*ACTUAL_CLK_FREQ)/1000      //Value to comp0
 #define ACTUAL_COMP1_LOAD   (LETIMER_ON_TIME_MS*ACTUAL_CLK_FREQ)/1000     //Value to comp1
 /*Verification:
