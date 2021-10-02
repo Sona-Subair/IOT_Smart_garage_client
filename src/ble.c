@@ -3,7 +3,7 @@
  *
  *@version     0.0.1
  *
- *@brief
+ *@brief       function to handle ble event
  *@brief
  *
  *@author      Jiabin Lin, jili9036@Colorado.edu
@@ -42,16 +42,16 @@ ble_data_struct_t ble_data;
 
 static uint8_t advertising_set_handle = 0xff;
 uint8_t connection_handle = 0xff;
-
+/**Get private ble data*/
 ble_data_struct_t *get_ble_data(){
   return (&ble_data);
 }
-
+/**Get private connection handle*/
 uint8_t *get_connection_handle(){
   return (&connection_handle);
 }
 
-
+/**private ble data initialization*/
 void ble_data_init(){
   ble_data_struct_t *ble_data_loc = get_ble_data();
   ble_data_loc->htm_indication_enable = false;
@@ -59,7 +59,10 @@ void ble_data_init(){
   ble_data_loc->htm_indication_on_flight = false;
 }
 
-
+/**
+ * Handle ble event based on the ble stack signal
+ * @param[in] ble stack signal
+ * */
 void handle_ble_event(sl_bt_msg_t *evt){
   ble_data_struct_t *ble_data_loc = get_ble_data();
   sl_status_t sc;

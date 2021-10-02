@@ -55,7 +55,7 @@
 #define MAX_CNT_EVT_LENGTH  0xffff
 
 
-#define PRINT_PARAMS      1
+#define PRINT_PARAMS      0
 typedef struct {
   //value that are common to servers and clients
   bool htm_indication_enable;
