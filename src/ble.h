@@ -49,7 +49,7 @@
 #define MIN_CNT_INTERVAL    60       //min. cnt. interval (75ms / 1.25ms = 60)
 #define MAX_CNT_INVERVAL    60       //max. cnt. interval (75ms / 1.25ms = 60)
 #define SLAVE_LATENCY       4        //slave latency 4*75ms = 300ms
-#define SUPERVISON_TIMEOUT  700      //Supervision timeout((1 + latency) * max_interval * 2) = 45150us = 0.4515s ~ 5s
+#define SUPERVISON_TIMEOUT  800      //Supervision timeout((1 + latency) * max_interval * 2) = 45150us = 0.4515s ~ 5s
                                      //700 accommodate the real latency of 90
 #define MIN_CNT_EVT_LENGTH  0
 #define MAX_CNT_EVT_LENGTH  0xffff

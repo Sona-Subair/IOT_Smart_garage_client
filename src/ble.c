@@ -37,6 +37,7 @@
 #include "i2c.h"
 #include "autogen/gatt_db.h"
 
+#include "ble_device_type.h"
 
 ble_data_struct_t ble_data;
 
@@ -66,13 +67,15 @@ void ble_data_init(){
 void handle_ble_event(sl_bt_msg_t *evt){
   ble_data_struct_t *ble_data_loc = get_ble_data();
   sl_status_t sc;
-
+  bd_addr addr;
+  uint8_t address_type;
+  uint8_t system_id[6];
   switch(SL_BT_MSG_ID(evt->header)){
     //Events common to both servers and clients
 
     case sl_bt_evt_system_boot_id:
         ble_data_init();
-
+        displayInit();
         sc = sl_bt_advertiser_create_set(&advertising_set_handle);
         app_assert_status(sc);
 
@@ -88,6 +91,14 @@ void handle_ble_event(sl_bt_msg_t *evt){
                                     sl_bt_advertiser_general_discoverable,
                                     sl_bt_advertiser_connectable_scannable);
         app_assert_status(sc);
+
+        sc = sl_bt_system_get_identity_address(&addr, &address_type);
+        app_assert_status(sc);
+        displayPrintf(DISPLAY_ROW_NAME, "Server");
+        displayPrintf(DISPLAY_ROW_CONNECTION, "Advertising");
+        displayPrintf(DISPLAY_ROW_ASSIGNMENT, "A6");
+        displayPrintf(DISPLAY_ROW_BTADDR, "%02X:%02X:%02X:%02X:%02X:%02X",addr.addr[0],
+                      addr.addr[1],addr.addr[2],addr.addr[3],addr.addr[4], addr.addr[5]);
       break;
 
       /**Call when client connected**/
@@ -105,6 +116,10 @@ void handle_ble_event(sl_bt_msg_t *evt){
 
       sc = sl_bt_advertiser_stop(advertising_set_handle);
       app_assert_status(sc);
+
+      displayPrintf(DISPLAY_ROW_CONNECTION, "Connected");
+
+
       break;
 
       /**Call when a connection closed**/
@@ -115,6 +130,8 @@ void handle_ble_event(sl_bt_msg_t *evt){
              sl_bt_advertiser_general_discoverable,
              sl_bt_advertiser_connectable_scannable);
       app_assert_status(sc);
+      displayPrintf(DISPLAY_ROW_CONNECTION, "Advertising");
+      displayPrintf(DISPLAY_ROW_TEMPVALUE, "");
       break;
 
 
@@ -138,14 +155,8 @@ void handle_ble_event(sl_bt_msg_t *evt){
           if(evt->data.evt_gatt_server_characteristic_status.status_flags ==sl_bt_gatt_server_client_config){            //Configuration changed
             if(evt->data.evt_gatt_server_characteristic_status.client_config_flags == sl_bt_gatt_server_indication) {     //Indication enable
               ble_data_loc->htm_indication_enable = true;
-#if DEBUG
-              LOG_INFO("HTM indications On");
-#endif
             } else if(evt->data.evt_gatt_server_characteristic_status.client_config_flags == sl_bt_gatt_server_disable) { // Indication disable
               ble_data_loc->htm_indication_enable = false;
-#if DEBUG
-              LOG_INFO("HTM indications Off");
-#endif
             }
           }else if(evt->data.evt_gatt_server_characteristic_status.status_flags ==sl_bt_gatt_server_confirmation){       //confirmation from client
               ble_data_loc->htm_indication_on_flight = false;
@@ -153,6 +164,9 @@ void handle_ble_event(sl_bt_msg_t *evt){
       }
       break;
 
+    case sl_bt_evt_system_soft_timer_id:
+        displayUpdate();
+        break;
       /**Should never reach here**/
     case sl_bt_evt_gatt_server_indication_timeout_id:
       LOG_ERROR("Client did not respond");

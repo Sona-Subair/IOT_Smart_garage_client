@@ -49,6 +49,8 @@
 
 #include "src/ble.h"
 
+#include "src/lcd.h"
+
 /*****************************************************************************
  * Application Power Manager callbacks
  *****************************************************************************/
@@ -92,12 +94,13 @@ SL_WEAK void app_init(void)
   cmu_init();
   letimer_init();
   gpioInit();
+  si7021_enable();
   //EvtCirQ_init();
+
 
 #if((LOWEST_ENERGY_MODE==EM1) || (LOWEST_ENERGY_MODE==EM2))
       sl_power_manager_add_em_requirement(LOWEST_ENERGY_MODE);
 #endif
-
 
 }
 

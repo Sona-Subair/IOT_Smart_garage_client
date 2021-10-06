@@ -75,6 +75,17 @@ void si7021_disable(){
   GPIO_PinOutClear(SI7021_PORT,SI7021_PIN);
 }
 
+void gpioSensorEnSetOn(){
+  GPIO_PinOutSet(DISP_PORT,DISP_PIN);
+}
+
+void gpioSetDisplayExtcomin(bool status){
+  if(status){
+    GPIO_PinOutSet(DISP_PORT,DISP_PIN);
+  }else{
+    GPIO_PinOutClear(DISP_PORT,DISP_PIN);
+  }
+}
 
 
 // DOS

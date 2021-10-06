@@ -38,6 +38,7 @@
 #include "ble.h"
 #include "gatt_db.h"
 
+#include "lcd.h"
 EventQueue_t EvtQ;
 
 EventQueue_t *getEvQ(){
@@ -167,6 +168,7 @@ void update_and_send_indication(){
   uint8_t   flags = 0x00;                // HTM flags set as 0 for Celsius, no time stamp and no temperature type.
 
   // DOS
+  displayPrintf(DISPLAY_ROW_TEMPVALUE, "Temp=%d", (int) *temp_c);
 #if DEBUG
   LOG_INFO("Temp=%d", (int) *temp_c);
 #endif
@@ -221,6 +223,7 @@ void temp_measure_state_machine(sl_bt_msg_t *evt_struct){
 
 
   if(!ok_to_indicate()){
+      displayPrintf(DISPLAY_ROW_TEMPVALUE, "");
       return;
   }
 
@@ -242,9 +245,6 @@ void temp_measure_state_machine(sl_bt_msg_t *evt_struct){
       next_state = STATE_IDLE;
 
       if(signal== letimer_underflow_expired ){
-#if DEBUG
-          LOG_INFO("To1");
-#endif
           si7021_enable();
           timerWaitUs_irq(SI7021_ENABLE_TIME_US);
           next_state = STATE_SENSOR_POWER_ON;
@@ -255,9 +255,6 @@ void temp_measure_state_machine(sl_bt_msg_t *evt_struct){
       next_state = STATE_SENSOR_POWER_ON;
 
       if(signal == letimer_comp1_expired){
-#if DEBUG
-          LOG_INFO("To2");
-#endif
           sl_power_manager_add_em_requirement(EM1);
           si7021_send_temp_cmd();
           next_state = STATE_I2C_WRITING;
@@ -267,9 +264,6 @@ void temp_measure_state_machine(sl_bt_msg_t *evt_struct){
     case STATE_I2C_WRITING:
       next_state = STATE_I2C_WRITING;
       if(signal == i2c_done){
-#if DEBUG
-          LOG_INFO("To3");
-#endif
           timerWaitUs_irq(SI7021_CNVRT_TIME_US);
           sl_power_manager_remove_em_requirement(EM1);
           next_state = STATE_I2C_READING;
@@ -279,9 +273,6 @@ void temp_measure_state_machine(sl_bt_msg_t *evt_struct){
     case STATE_I2C_READING:
       next_state = STATE_I2C_READING;
       if(signal == letimer_comp1_expired){
-#if DEBUG
-          LOG_INFO("To4");
-#endif
           sl_power_manager_add_em_requirement(EM1);
           si7021_read_temp_cmd();
           next_state = STATE_SENSOR_CLEAN_UP;
@@ -291,13 +282,10 @@ void temp_measure_state_machine(sl_bt_msg_t *evt_struct){
     case STATE_SENSOR_CLEAN_UP:
       next_state = STATE_SENSOR_CLEAN_UP;
       if(signal == i2c_done){
-          si7021_disable();
+          //si7021_disable();
           NVIC_DisableIRQ(I2C0_IRQn);
           update_and_send_indication();
           sl_power_manager_remove_em_requirement(EM1);
-#if DEBUG
-          LOG_INFO("To0\n");
-#endif
           next_state = STATE_IDLE;
       }
       break;

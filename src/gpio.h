@@ -30,6 +30,10 @@
 #define SI7021_PIN          15
 
 
+#define DISP_PORT           gpioPortD
+#define DISP_PIN            13
+
+
 
 
 
@@ -42,7 +46,8 @@ void gpioLed1SetOn();
 void gpioLed1SetOff();
 void si7021_enable();
 void si7021_disable();
-
+void gpioSensorEnSetOn();
+void gpioSetDisplayExtcomin(bool status);
 //DOS
 void ToggleLED0 (void);
 
