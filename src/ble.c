@@ -77,23 +77,33 @@ void handle_ble_event(sl_bt_msg_t *evt){
         ble_data_init();
         displayInit();
         sc = sl_bt_advertiser_create_set(&advertising_set_handle);
-        app_assert_status(sc);
+        if(sc!=SL_STATUS_OK){
+          LOG_ERROR("Advertiser handle create failed %d", sc);
+        }
+
 
         sc = sl_bt_advertiser_set_timing( advertising_set_handle,
                                           MIN_ADV_INTERVAL,
                                           MAX_ADV_INTERVAL,
                                           ADV_DURATION,
                                           MAX_ADV_EVENT);
-        app_assert_status(sc);
+        if(sc!=SL_STATUS_OK){
+          LOG_ERROR("Advertiser set timing failed %d", sc);
+        }
 
 
         sc = sl_bt_advertiser_start(advertising_set_handle,
                                     sl_bt_advertiser_general_discoverable,
                                     sl_bt_advertiser_connectable_scannable);
-        app_assert_status(sc);
+        if(sc!=SL_STATUS_OK){
+          LOG_ERROR("Advertiser start failed %d", sc);
+        }
 
         sc = sl_bt_system_get_identity_address(&addr, &address_type);
         app_assert_status(sc);
+        if(sc!=SL_STATUS_OK){
+          LOG_ERROR("Get identity address failed %d", sc);
+        }
         displayPrintf(DISPLAY_ROW_NAME, "Server");
         displayPrintf(DISPLAY_ROW_CONNECTION, "Advertising");
         displayPrintf(DISPLAY_ROW_ASSIGNMENT, "A6");
@@ -112,10 +122,15 @@ void handle_ble_event(sl_bt_msg_t *evt){
                                             SUPERVISON_TIMEOUT,
                                             MIN_CNT_EVT_LENGTH,
                                             MAX_CNT_EVT_LENGTH);
-      app_assert_status(sc);
+      if(sc!=SL_STATUS_OK){
+        LOG_ERROR("connection set parameters failed %d", sc);
+      }
 
       sc = sl_bt_advertiser_stop(advertising_set_handle);
-      app_assert_status(sc);
+
+      if(sc!=SL_STATUS_OK){
+        LOG_ERROR("advertiser stop failed %d", sc);
+      }
 
       displayPrintf(DISPLAY_ROW_CONNECTION, "Connected");
 
@@ -129,7 +144,9 @@ void handle_ble_event(sl_bt_msg_t *evt){
              advertising_set_handle,
              sl_bt_advertiser_general_discoverable,
              sl_bt_advertiser_connectable_scannable);
-      app_assert_status(sc);
+      if(sc!=SL_STATUS_OK){
+        LOG_ERROR("connection enable failed %d", sc);
+      }
       displayPrintf(DISPLAY_ROW_CONNECTION, "Advertising");
       displayPrintf(DISPLAY_ROW_TEMPVALUE, "");
       break;

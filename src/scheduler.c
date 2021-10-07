@@ -186,13 +186,17 @@ void update_and_send_indication(){
                                                 5,                              // length
                                                 &htm_temperature_buffer[0] );   // pointer to buffer where data is
 
-  app_assert_status(sc);
+  if(sc!=SL_STATUS_OK){
+    LOG_ERROR("gatt write attribute failed %d", sc);
+  }
 
   sc=sl_bt_gatt_server_send_indication(*connection_handle_loc,
                                        gattdb_temperature_measurement,
                                        5,
                                        &htm_temperature_buffer[0]);
-  app_assert_status(sc);
+  if(sc!=SL_STATUS_OK){
+    LOG_ERROR("gatt send indication failed %d", sc);
+  }
   ble_data_loc->htm_indication_on_flight = true;
 }
 
