@@ -7,7 +7,7 @@
  *
  *@author      Jiabin Lin, jili9036@Colorado.edu
  *
- *@date        Sep 3, 2021
+ *@date        Nov 13th, 2021
  *
  *@institution University of Colorado Boulder (UCB)
  *
@@ -17,7 +17,7 @@
  *
  *@assignment  ecen5823-assignment2-JiabinLin12
  *
- *@due         Sep 10, 2020
+ *@due         Dec 8th, 2020
  *
  *@resources   Utilized Silicon Labs' EMLIB peripheral libraries to
  *             implement functionality.

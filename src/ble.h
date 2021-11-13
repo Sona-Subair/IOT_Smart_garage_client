@@ -17,7 +17,7 @@
  *
  *@assignment  ecen5823-assignment2-JiabinLin12
  *
- *@due         Oct 3rd, 2020
+ *@due         Dec 8th, 2020
  *
  *@resources   Utilized Silicon Labs' EMLIB peripheral libraries to
  *             implement functionality.
@@ -54,14 +54,23 @@
 #define MIN_CNT_EVT_LENGTH  0
 #define MAX_CNT_EVT_LENGTH  0xffff
 
+#define SM_CONFIG_FLAG      0x0F
 
-#define PRINT_PARAMS      0
+#define PRINT_PARAMS        0
 typedef struct {
   //value that are common to servers and clients
-  bool htm_indication_enable;
-  bool htm_connection_enable;
-  bool htm_indication_on_flight;
+  bool connection_enable;
+
   //value unique for server
+  bool indication_in_flight;
+
+  bool htm_indication_enable;
+  bool motion_indication_enable;
+  bool light_indication_enable;
+
+  bool smart_garage_bonded;
+
+  bool smart_garage_confirmation_require;
 
   //value unique for client
 }ble_data_struct_t;

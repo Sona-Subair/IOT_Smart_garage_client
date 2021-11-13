@@ -28,13 +28,14 @@
  *             discretion of author. Contact for permission.  */
 #include "timers.h"
 #include "app.h"
-#include "i2c.h"
 
 // Include logging for this file
 #define INCLUDE_LOG_DEBUG 1
 #include "src/log.h"
 
-static uint32_t timestamp = 0;                         //allow to call within irq.c
+
+#include <src/sml_state_machine.h>
+#include <src/sml_adc.h>
 
 
 
@@ -45,11 +46,6 @@ static uint32_t timestamp = 0;                         //allow to call within ir
 void LETIMER0_IRQHandler(void){
 
   int letimer_flag = LETIMER_IntGetEnabled(LETIMER0);  //determine source of IRQ
-  LETIMER_IntClear(LETIMER0,letimer_flag);
-  if(letimer_flag & LETIMER_IF_UF) {
-    timestamp += ACTUAL_COMP0_LOAD;
-    schedulerSetEventReadTemp();                       //Set read Si7021 event when UF
-  }
 
   if(letimer_flag & LETIMER_IF_COMP1){
     LETIMER_IntDisable(LETIMER0, LETIMER_IF_COMP1);
@@ -58,25 +54,29 @@ void LETIMER0_IRQHandler(void){
 
 }
 
-/**
- * Handle I2C0 interrupt events
- * */
-void I2C0_IRQHandler(void){
-  I2C_TransferReturn_TypeDef transferStatus;
-  transferStatus = I2C_Transfer(I2C0);
 
-  //Set event when I2C transmission is finished
-  if(transferStatus==i2cTransferDone){
-      schedulerSetEventI2Cdone();
+
+void GPIO_EVEN_IRQHandler(void){
+  int gpio_flag = GPIO_IntGetEnabled();
+  GPIO_IntClear(gpio_flag);
+  //Either PB0 or bream beam
+  if (!GPIO_PinInGet(PB0_PORT,PB0_PIN)
+      && (gpio_flag & (1<<PB0_PIN))){
+     pb_pressed_external_signal();
+  }else if ((gpio_flag & (1<<BREAK_BEAM_PIN))){
+      schedulerSetEventBreakBeam();
   }
-  if(transferStatus < 0){
-      LOG_ERROR("%d",transferStatus);
-  }
+
 }
 
-/**
- * Return the timestamps values with 3 second resolution
- * */
-uint32_t letimerMilliseconds(){
-  return timestamp;
+
+void ADC0_IRQHandler(void)
+{
+  //Disable ADC interrupt
+  IntDisable_ADC();
+  // Get ADC result
+  schedulerSetEventADCDone();
 }
+
+
+

@@ -21,17 +21,29 @@
 // and GPIO documentation at https://siliconlabs.github.io/Gecko_SDK_Doc/efm32g/html/group__GPIO.html
 // to determine the correct values for these.
 
-#define	LED0_port  gpioPortF // change to correct ports and pins
+#define	LED0_port  gpioPortF
 #define LED0_pin   4
 #define LED1_port  gpioPortF
 #define LED1_pin   5
+#define PB0_PORT   gpioPortF
+#define PB0_PIN    6
+#define PB1_PORT   gpioPortF
+#define PB1_PIN    7
 
 #define SI7021_PORT         gpioPortD
 #define SI7021_PIN          15
-
-
 #define DISP_PORT           gpioPortD
 #define DISP_PIN            13
+
+
+//Smart Light Macro Define
+#define BREAK_BEAM_PORT     gpioPortD   //EXP_HEADER7
+#define BREAK_BEAM_PIN      10
+#define LIGHT_SENSOR_POWER_PORT   gpioPortD   //External Pin 11
+#define LIGHT_SENSOR_POWER_PIN    12
+
+
+
 
 
 
@@ -48,6 +60,8 @@ void si7021_enable();
 void si7021_disable();
 void gpioSensorEnSetOn();
 void gpioSetDisplayExtcomin(bool status);
+void light_sensor_enable();
+void light_sensor_disable();
 //DOS
 void ToggleLED0 (void);
 

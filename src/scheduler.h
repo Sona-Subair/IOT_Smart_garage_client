@@ -7,7 +7,7 @@
  *
  *@author      Jiabin Lin, jili9036@Colorado.edu
  *
- *@date        Sep 9, 2021
+ *@date        Nov 13th, 2021
  *
  *@institution University of Colorado Boulder (UCB)
  *
@@ -15,9 +15,9 @@
  *
  *@instructor  David Sluiter
  *
- *@assignment  ecen5823-assignment2-JiabinLin12
+ *@assignment  final-project
  *
- *@due         Sep 17, 2020
+ *@due         Dec 3rd, 2020
  *
  *@resources   Utilized Silicon Labs' EMLIB peripheral libraries to
  *             implement functionality.
@@ -33,50 +33,48 @@
 #include "src/gpio.h"
 
 
-#define CIR_QUEUE_SIZE      10
+#define CIR_QUEUE_SIZE      16
 
-//add events here
-/* DOS temp, not using circular queue, some kind of timing/space bug there
-enum {
-  no_event = 0,
-  letimer_underflow_expired,
-  letimer_comp1_expired,
-  i2c_done
-};
-*/
+
 
 enum {
   no_event                  = 0,
-  letimer_underflow_expired = 1,
-  letimer_comp1_expired     = 2,
-  i2c_done                  = 4
+  letimer_comp1_expired     = 1,
+
+  pb0_pressed = 2
 };
 
-typedef enum uint32_t {
-  STATE_IDLE,
-  STATE_SENSOR_POWER_ON,
-  STATE_I2C_WRITING,
-  STATE_I2C_READING,
-  STATE_SENSOR_CLEAN_UP,
-  MY_STATES_NUM
-}state_t;
 
+
+
+typedef struct QueueElement_s{
+  uint16_t charHandle;
+  size_t bufferLength;
+  uint8_t buffer[5];
+  uint16_t charactristic;
+  bool invalid_element;
+}QueueElement_t;
 
 //structure for event circular queue
-typedef struct EventQueue_s{
-  int32_t head;
-  int32_t tail;
-  uint32_t event[CIR_QUEUE_SIZE];
-}EventQueue_t;
+typedef struct CirQueue_s{
+  int32_t readptr;
+  int32_t writeptr;
+  bool isfull;
+
+  QueueElement_t elements[CIR_QUEUE_SIZE];
+}CirQueue_t;
 
 //Function prototype
-EventQueue_t *getEvQ();
-void EvtCirQ_init();
-void schedulerSetEventReadTemp();
-void update_and_send_indication();
+CirQueue_t *getPbQ();
+void PbCirQ_init();
+void pushbutton0_response();
+void pb_pressed_external_signal();
+//void schedulerSetEventReadTemp();
+//void update_and_send_indication();
 void schedulerSetEventWaitUs();
-void schedulerSetEventI2Cdone();
-void temp_measure_state_machine(sl_bt_msg_t *evt_struct);
-uint32_t getNextEvent();
-
+//void schedulerSetEventI2Cdone();
+void light_to_client_indication(uint8_t light_state);
+void motion_to_client_indication(uint8_t motion_state);
+//uint32_t getNextEvent();
+void soft_timer_deq_indication();
 #endif /* SRC_SCHEDULER_H_ */

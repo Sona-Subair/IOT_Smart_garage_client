@@ -23,8 +23,6 @@
 void gpioInit()
 {
 
-  // Student Edit:
-
 	GPIO_DriveStrengthSet(LED0_port, gpioDriveStrengthStrongAlternateStrong);
 	//GPIO_DriveStrengthSet(LED0_port, gpioDriveStrengthWeakAlternateWeak);
 	GPIO_PinModeSet(LED0_port, LED0_pin, gpioModePushPull, false);
@@ -33,6 +31,14 @@ void gpioInit()
 	//GPIO_DriveStrengthSet(LED1_port, gpioDriveStrengthWeakAlternateWeak);
 	GPIO_PinModeSet(LED1_port, LED1_pin, gpioModePushPull, false);
 
+  //PB0
+  GPIO_PinModeSet(PB0_PORT, PB0_PIN, gpioModeInputPullFilter, true);
+  GPIO_ExtIntConfig(PB0_PORT,PB0_PIN,PB0_PIN,true,true,true);
+
+  //Break Beam
+  GPIO_PinModeSet(BREAK_BEAM_PORT, BREAK_BEAM_PIN, gpioModeInputPullFilter, true);
+  NVIC_EnableIRQ(GPIO_EVEN_IRQn);
+  GPIO_ExtIntConfig(BREAK_BEAM_PORT,BREAK_BEAM_PIN,BREAK_BEAM_PIN,false,true,true);
 
 } // gpioInit()
 
@@ -87,8 +93,15 @@ void gpioSetDisplayExtcomin(bool status){
   }
 }
 
+void light_sensor_enable(){
+  GPIO_PinOutSet(LIGHT_SENSOR_POWER_PORT,LIGHT_SENSOR_POWER_PIN);
+}
 
-// DOS
+void light_sensor_disable(){
+  GPIO_PinOutSet(LIGHT_SENSOR_POWER_PORT,LIGHT_SENSOR_POWER_PIN);
+}
+
+
 void ToggleLED0 () {
   static bool  state=false;
 
@@ -99,7 +112,6 @@ void ToggleLED0 () {
       state = true;
       gpioLed0SetOn();
   }
-
 }
 
 

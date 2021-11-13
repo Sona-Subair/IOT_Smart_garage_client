@@ -78,7 +78,7 @@
 #define ACTUAL_CLK_FREQ     ULFRCO_FREQ/PRESCALER_VALUE   //Frequency after clock division
 #endif
 #define TIK_PER_PERIOD      ACTUAL_CLK_FREQ*(LETIMER_PERIOD_MS/1000)
-
+#define MAX_TIK             65535
 #define ACTUAL_COMP0_LOAD   (LETIMER_PERIOD_MS*ACTUAL_CLK_FREQ)/1000      //Value to comp0
 #define ACTUAL_COMP1_LOAD   (LETIMER_ON_TIME_MS*ACTUAL_CLK_FREQ)/1000     //Value to comp1
 /*Verification:
