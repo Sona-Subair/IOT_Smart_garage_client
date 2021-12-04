@@ -33,7 +33,6 @@
 // Include logging for this file
 #define INCLUDE_LOG_DEBUG 1
 #include "src/log.h"
-
 #include "autogen/gatt_db.h"
 
 #include "ble_device_type.h"
@@ -86,10 +85,12 @@ void handle_ble_event(sl_bt_msg_t *evt){
   sl_status_t sc;
   bd_addr addr;
   uint8_t address_type;
+  uint8_t flag;
   switch(SL_BT_MSG_ID(evt->header)){
     //Events common to both servers and clients
 
     case sl_bt_evt_system_boot_id:
+    #if DEVICE_IS_BLE_SERVER
         ble_data_init();
         displayInit();
         sc = sl_bt_advertiser_create_set(&advertising_set_handle);
@@ -134,10 +135,92 @@ void handle_ble_event(sl_bt_msg_t *evt){
         displayPrintf(DISPLAY_ROW_ASSIGNMENT, "A6");
         displayPrintf(DISPLAY_ROW_BTADDR, "%02X:%02X:%02X:%02X:%02X:%02X",addr.addr[0],
                       addr.addr[1],addr.addr[2],addr.addr[3],addr.addr[4], addr.addr[5]);
-      break;
+   #else
+        sc = sl_bt_system_get_identity_address(&addr , &address_type);
+        displayInit();
+        displayPrintf(DISPLAY_ROW_NAME,"Client");
+                displayPrintf(DISPLAY_ROW_BTADDR,"%02X:%02X:%02X:%02X:%02X:%02X",addr.addr[5],
+                              addr.addr[4],
+                              addr.addr[3],
+                              addr.addr[2],
+                              addr.addr[1],
+                              addr.addr[0]);
+                sc = sl_bt_scanner_set_mode(sl_bt_gap_1m_phy, 0);
+                if(sc!=SL_STATUS_OK)
+                  {
+                  LOG_INFO("sl_bt_scanner_set_mode()  returned != 0 status=0x%04x", (unsigned int) sc);
+                  }
 
+                sc = sl_bt_scanner_set_timing(sl_bt_gap_1m_phy, 80, 40);
+                if(sc!=SL_STATUS_OK)
+                  {
+                   LOG_INFO("sl_bt_scanner_set_timing()  returned != 0 status=0x%04x", (unsigned int) sc);
+                  }
+                displayPrintf(DISPLAY_ROW_CONNECTION, "Discovering");
+                //ble_data.PB0client_button_pressed=false;
+                sc = sl_bt_connection_set_default_parameters(60,
+                                                             60,
+                                                             3,
+                                                             850,
+                                                             0,
+                                                             0);
+                if(sc!=SL_STATUS_OK)
+                    {
+                    LOG_INFO("sl_bt_scanner_default_parameters()  returned != 0 status=0x%04x", (unsigned int) sc);
+                    }
+
+                sc= sl_bt_scanner_start(sl_bt_gap_1m_phy, sl_bt_scanner_discover_generic);
+                if(sc!=SL_STATUS_OK)
+                    {
+                    LOG_INFO("sl_bt_scanner_start()  returned != 0 status=0x%04x", (unsigned int) sc);
+                    }
+                sc = sl_bt_sm_delete_bondings();
+                sc = sl_bt_sm_configure (
+                     SM_CONFIG_FLAG,
+                     sm_io_capability_displayyesno
+                   );
+                   if(sc!=SL_STATUS_OK)
+                      {
+                     LOG_INFO(" sl_bt_sm_configure() returned != 0 status=0x%04x", (unsigned int) sc);
+                      }
+        #endif
+
+        break;
+
+    case sl_bt_evt_scanner_scan_report_id:
+    #if DEVICE_IS_BLE_SERVER==0
+      printf("yes");
+       for(int i=0;i<=5;i++)
+      {
+        if(evt->data.evt_scanner_scan_report.address.addr[i]!=addr.addr[i])
+        {
+         flag=0;
+        }
+        else
+         flag=1;
+       }
+        if(flag!=0)
+         {
+          sc=sl_bt_connection_open(evt->data.evt_scanner_scan_report.address,
+                                   evt->data.evt_scanner_scan_report.address_type,
+                                   sl_bt_gap_1m_phy,
+                                   NULL);
+          if(sc!=SL_STATUS_OK)
+            {
+             LOG_INFO("sl_bt_connection_open()  returned != 0 status=0x%04x", (unsigned int) sc);
+            }
+            sc=sl_bt_scanner_stop(evt->data.evt_scanner_scan_report.address);
+            if(sc!=SL_STATUS_OK)
+             {
+              LOG_INFO("sl_bt_scanner_stop()  returned != 0 status=0x%04x", (unsigned int) sc);
+             }
+            flag=0;
+            }
+       #endif
+       break;
       /**Call when client connected**/
     case sl_bt_evt_connection_opened_id:
+    #if DEVICE_IS_BLE_SERVER
       ble_data_loc->connection_enable = true;
       connection_handle = evt->data.evt_connection_opened.connection;
       sc = sl_bt_connection_set_parameters( connection_handle,
@@ -158,12 +241,14 @@ void handle_ble_event(sl_bt_msg_t *evt){
       }
 
       displayPrintf(DISPLAY_ROW_CONNECTION, "Connected");
-
-
+  #else
+  ble_data.connection_handle=evt->data.evt_connection_opened.connection;
+  #endif
       break;
 
       /**Call when a connection closed**/
     case sl_bt_evt_connection_closed_id:
+   #if DEVICE_IS_BLE_SERVER
       ble_data_init();
       ble_data_loc->connection_enable = false;
       sc = sl_bt_sm_delete_bondings();
@@ -179,18 +264,25 @@ void handle_ble_event(sl_bt_msg_t *evt){
         LOG_ERROR("connection enable failed %d", sc);
       }
       displayPrintf(DISPLAY_ROW_CONNECTION, "Advertising");
-      displayPrintf(DISPLAY_ROW_TEMPVALUE, "");
+      displayPrintf(DISPLAY_ROW_SMLVALUE, "");
       PbCirQ_init();
+   #else
+   #endif
       break;
+
 
 
     /**Call when parameters are set**/
     case sl_bt_evt_connection_parameters_id:
-#if (PRINT_PARAMS) // DOS: compiler error in formatting these parameters, included with ( ) and typecast to int
+#if DEVICE_IS_BLE_SERVER
+
+  #if (PRINT_PARAMS) // DOS: compiler error in formatting these parameters, included with ( ) and typecast to int
       LOG_INFO("interval=%d, latency=%d, timeout=%d",
                (int) (evt->data.evt_connection_parameters.interval*1.25),
                (int) (evt->data.evt_connection_parameters.latency),
                (int) (evt->data.evt_connection_parameters.timeout) );
+   #endif
+#else
 #endif
       break;
 
@@ -208,15 +300,21 @@ void handle_ble_event(sl_bt_msg_t *evt){
         break;
 
     case sl_bt_evt_sm_confirm_passkey_id:
+#if DEVICE_IS_BLE_SERVER
        displayPrintf(DISPLAY_ROW_PASSKEY,"%d",evt->data.evt_sm_confirm_passkey.passkey);
        displayPrintf(DISPLAY_ROW_ACTION,"Confirm with PB0");
        if(evt->data.evt_sm_confirm_bonding.connection==connection_handle &&
            evt->data.evt_sm_confirm_bonding.bonding_handle!=SL_BT_INVALID_BONDING_HANDLE){
            ble_data_loc->smart_garage_confirmation_require = true;
        }
-       break;
+ #else
+      displayPrintf(DISPLAY_ROW_PASSKEY, "%d", evt->data.evt_sm_confirm_passkey.passkey);
+      displayPrintf(DISPLAY_ROW_ACTION, "Confirm with PB0");
+#endif
+      break;
 
     case sl_bt_evt_sm_bonded_id:
+#if DEVICE_IS_BLE_SERVER
        displayPrintf(DISPLAY_ROW_CONNECTION, "Bonded");
        displayPrintf(DISPLAY_ROW_PASSKEY,"");
        displayPrintf(DISPLAY_ROW_ACTION,"");
@@ -224,15 +322,32 @@ void handle_ble_event(sl_bt_msg_t *evt){
           evt->data.evt_sm_confirm_bonding.bonding_handle!=SL_BT_INVALID_BONDING_HANDLE){
          ble_data_loc->smart_garage_bonded  = true;
        }
+#else
+       displayPrintf(DISPLAY_ROW_CONNECTION, "Bonded");
+       displayPrintf(DISPLAY_ROW_PASSKEY, "");
+       displayPrintf(DISPLAY_ROW_ACTION, "");
+#endif
        break;
 
      case  sl_bt_evt_sm_bonding_failed_id:
        ble_data_loc->smart_garage_bonded  = false;
        LOG_ERROR("Bonding Failed");
        break;
+     case sl_bt_evt_gatt_service_id://Save the handles.Similar to samplecode.Character handle Service handle.
+    #if DEVICE_IS_BLE_SERVER==0
+       ble_data.sml_service_handle=evt->data.evt_gatt_service.service;
+    #endif
+       break;
+
+     case sl_bt_evt_gatt_characteristic_id:
+    #if DEVICE_IS_BLE_SERVER==0
+       ble_data.sml_characteristic_handle=evt->data.evt_gatt_characteristic.characteristic;
+    #endif
+       break;
 
 
     case sl_bt_evt_system_external_signal_id:
+#if DEVICE_IS_BLE_SERVER
       switch(evt->data.evt_system_external_signal.extsignals){
         case pb0_pressed:
           pushbutton0_response();
@@ -240,6 +355,13 @@ void handle_ble_event(sl_bt_msg_t *evt){
         default:
           break;
       }
+#else
+      switch(evt->data.evt_system_external_signal.extsignals){
+          case pb0_pressed:
+           {
+          sl_bt_sm_passkey_confirm(ble_data.connection_handle, 1);
+           }}
+#endif
       break;
 
       /**Call when change of CCCD or indication confirmation received by client**/
@@ -253,11 +375,17 @@ void handle_ble_event(sl_bt_msg_t *evt){
         soft_timer_deq_indication();
         break;
 
-      /**Should never reach here**/
     case sl_bt_evt_gatt_server_indication_timeout_id:
       LOG_ERROR("Client did not respond");
       break;
-
+    case sl_bt_evt_gatt_procedure_completed_id:
+    #if DEVICE_IS_BLE_SERVER==0
+       if(evt->data.evt_gatt_procedure_completed.result==0x110F)
+               {
+                sc=sl_bt_sm_increase_security(ble_data.connection_handle);
+               }
+     #endif
+     break;
 
   }
 }

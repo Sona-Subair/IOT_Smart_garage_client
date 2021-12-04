@@ -73,6 +73,14 @@ typedef struct {
   bool smart_garage_confirmation_require;
 
   //value unique for client
+  uint8_t  connection_handle;
+  uint32_t sml_service_handle;
+  uint16_t sml_characteristic_handle;
+  uint32_t distance_service_handle;
+  uint16_t distance_characteristic_handle;
+  uint8_t  service_handle;
+  uint8_t  characteristic_handle;
+
 }ble_data_struct_t;
 
 

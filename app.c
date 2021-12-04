@@ -52,6 +52,7 @@
 #include <src/sml_adc.h>
 
 #include <src/sml_state_machine.h>
+#include <src/client_state_machine.h>
 /*****************************************************************************
  * Application Power Manager callbacks
  *****************************************************************************/
@@ -124,6 +125,7 @@ void sl_bt_on_event(sl_bt_msg_t *evt)
 
   
    smart_light_state_machine(evt);
+   discovery_state_machine(evt);
    
 } // sl_bt_on_event()
 

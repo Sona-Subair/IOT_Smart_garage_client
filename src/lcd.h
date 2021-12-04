@@ -49,7 +49,7 @@ enum display_row {
 	DISPLAY_ROW_CONNECTION,    // 4
 	DISPLAY_ROW_PASSKEY,       // 5
 	DISPLAY_ROW_ACTION,        // 6
-	DISPLAY_ROW_TEMPVALUE,     // 7
+	DISPLAY_ROW_SMLVALUE,     // 7
 	DISPLAY_ROW_8,             // 8
 	DISPLAY_ROW_9,             // 9
 	DISPLAY_ROW_10,            // 10
