@@ -19,7 +19,7 @@ void discovery_state_machine(sl_bt_msg_t *evt)
   static const uint8_t sml_char[2]={0x1c, 0x2a};
   static const uint8_t sml_service[2]={0x09, 0x18};
   static const uint8_t distance_char[4] = {0x89, 0x62, 0x13, 0x2d};
-  static const uint8_t distance_service[16]={0x89, 0x62, 0x13, 0x2d };
+  static const uint8_t distance_service[4]={0x89, 0x62, 0x13, 0x2d };
   ble_data_struct_t *bleDataPtr = get_ble_data();
   switch (current_conn_state)
      {

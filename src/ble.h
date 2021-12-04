@@ -80,6 +80,7 @@ typedef struct {
   uint16_t distance_characteristic_handle;
   uint8_t  service_handle;
   uint8_t  characteristic_handle;
+  bd_addr server_address;
 
 }ble_data_struct_t;
 
